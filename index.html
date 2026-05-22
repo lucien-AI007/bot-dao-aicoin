@@ -327,17 +327,17 @@
 ⏳ <b>Trạng thái:</b> ĐANG CHỜ DUYỆT
 `;
 
-        // ⌨️ NƯỚC DUYỆT
+        // ⌨️ NƯỚC DUYỆT - ✅ SỬA: callback_data phải ngắn gọn, có undercore là dấu phân cách
         let keyboard = {
             "inline_keyboard": [
                 [
                     { 
                         "text": "✅ DUYỆT ĐƠN", 
-                        "callback_data": "approve_" + orderId + "_" + userId + "_" + receivedAmount.toFixed(0)
+                        "callback_data": "approve_" + userId + "_" + Math.floor(receivedAmount)
                     },
                     { 
                         "text": "❌ TỪ CHỐI", 
-                        "callback_data": "reject_" + orderId + "_" + userId
+                        "callback_data": "reject_" + userId
                     }
                 ]
             ]
