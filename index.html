@@ -125,16 +125,17 @@
 </div>
 
 <script>
-    let aicoin = parseFloat(localStorage.getItem('aicoin')) || 0;
-    let vnd = parseFloat(localStorage.getItem('vnd')) || 0;
+    let aicoin = 0;
+    let vnd = 0;
 
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
     const MIN_WITHDRAW = 1000;
+    const AICOIN_TO_VND_RATE = 10000000;
+    const MINING_PER_SECOND = 2.893;
     
-    // 🔥 THAY ĐỔI TỶ LỆ & MINING
-    const AICOIN_TO_VND_RATE = 10000000; // 10 triệu AICOIN = 1k VND
-    const MINING_PER_SECOND = 2.893; // ~250k AICOIN/ngày = 25 VND/ngày
+    // 🔥 THAY URL NÀY BẰNG URL CỦA BẠN
+    const GAS_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/usercontent";
 
     function showMessage(text) {
         let box = document.getElementById("app-message");
@@ -142,6 +143,60 @@
         box.style.display = "block";
         setTimeout(() => { box.style.display = "none"; }, 5000);
     }
+
+    function getTelegramUserId() {
+        let tg = window.Telegram.WebApp;
+        return tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+    }
+
+    // 📥 TẢI DỮ LIỆU TỪ SERVER
+    function loadDataFromServer() {
+        let userId = getTelegramUserId();
+        if (!userId) {
+            showMessage("⚠️ Không thể xác định User ID!");
+            return;
+        }
+        
+        fetch(GAS_URL + "?action=getData&userId=" + userId)
+            .then(r => r.json())
+            .then(data => {
+                aicoin = parseFloat(data.aicoin) || 0;
+                vnd = parseFloat(data.vnd) || 0;
+                if (data.bankName) {
+                    document.getElementById('bankName').value = data.bankName;
+                    document.getElementById('accNum').value = data.accNum;
+                    document.getElementById('accName').value = data.accName;
+                    lockInputs();
+                }
+                updateUI();
+            })
+            .catch(err => {
+                console.log("Lỗi tải dữ liệu:", err);
+                showMessage("Lỗi kết nối server!");
+            });
+    }
+
+    // 📤 LƯU DỮ LIỆU LÊN SERVER
+    function saveDataToServer() {
+        let userId = getTelegramUserId();
+        if (!userId) return;
+        
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "saveData",
+                userId: userId,
+                aicoin: aicoin,
+                vnd: vnd,
+                bankName: document.getElementById('bankName').value,
+                accNum: document.getElementById('accNum').value,
+                accName: document.getElementById('accName').value
+            })
+        }).catch(err => console.log("Lỗi lưu dữ liệu:", err));
+    }
+
+    // ⏰ LƯU DỮ LIỆU MỖI 30 GIÂY
+    setInterval(() => { saveDataToServer(); }, 30000);
 
     function formatTime(ms) {
         let totalSeconds = Math.floor(ms / 1000);
@@ -167,23 +222,11 @@
     }, 1000);
 
     window.onload = () => {
-        let lastTime = localStorage.getItem('lastSavedTime');
-        if (lastTime) {
-            let elapsed = (Date.now() - parseInt(lastTime)) / 1000;
-            if (elapsed > 0) aicoin += elapsed * MINING_PER_SECOND;
-        }
-        let savedBank = localStorage.getItem('bankName');
-        if(savedBank) {
-            document.getElementById('bankName').value = savedBank;
-            document.getElementById('accNum').value = localStorage.getItem('accNum');
-            document.getElementById('accName').value = localStorage.getItem('accName');
-            lockInputs();
-        }
-        updateUI();
+        loadDataFromServer();
     };
 
-    window.onpagehide = () => { localStorage.setItem('lastSavedTime', Date.now()); };
-    window.onblur = () => { localStorage.setItem('lastSavedTime', Date.now()); };
+    window.onpagehide = () => { saveDataToServer(); };
+    window.onblur = () => { saveDataToServer(); };
 
     function calculateExchange() {
         let amount = parseFloat(document.getElementById('exchangeAmount').value) || 0;
@@ -215,9 +258,16 @@
     }
 
     function saveBank() {
-        localStorage.setItem('bankName', document.getElementById('bankName').value.toUpperCase());
-        localStorage.setItem('accNum', document.getElementById('accNum').value.toUpperCase());
-        localStorage.setItem('accName', document.getElementById('accName').value.toUpperCase());
+        let bankName = document.getElementById('bankName').value.toUpperCase();
+        let accNum = document.getElementById('accNum').value.toUpperCase();
+        let accName = document.getElementById('accName').value.toUpperCase();
+        
+        if (!bankName || !accNum || !accName) {
+            showMessage("VUI LÒNG NHẬP ĐẦY ĐỦ THÔNG TIN!");
+            return;
+        }
+        
+        saveDataToServer();
         showMessage("ĐÃ LƯU THÔNG TIN!");
         lockInputs();
     }
@@ -226,12 +276,8 @@
         document.getElementById('aicoin').innerText = aicoin.toFixed(5);
         document.getElementById('hologram-value').innerText = aicoin.toFixed(5); 
         document.getElementById('vnd').innerText = Math.floor(vnd).toLocaleString(); 
-        localStorage.setItem('aicoin', aicoin);
-        localStorage.setItem('vnd', vnd);
-        localStorage.setItem('lastSavedTime', Date.now());
     }
 
-    // 🔥 THAY ĐỔI: Mining từ 0.00010 → 2.893/giây
     setInterval(() => { 
         aicoin += MINING_PER_SECOND; 
         updateUI(); 
@@ -248,26 +294,30 @@
 
     function checkIn() {
         let today = new Date().toISOString().split('T')[0];
-        if (localStorage.getItem('lastCheckInDate') === today) { showMessage("BẠN ĐÃ ĐIỂM DANH HÔM NAY RỒI!"); return; }
+        if (localStorage.getItem('lastCheckInDate') === today) { 
+            showMessage("BẠN ĐÃ ĐIỂM DANH HÔM NAY RỒI!"); 
+            return; 
+        }
         aicoin += 20000;
         localStorage.setItem('lastCheckInDate', today);
         updateUI();
+        saveDataToServer();
         showMessage("ĐÃ NHẬN 20.000 AICOIN!");
     }
 
     function watchAd() {
         if (typeof show_11017925 === 'function') {
             show_11017925().then(() => {
-                // 🔥 THAY ĐỔI: Nhận AICOIN thay VND
-                let reward = (Math.random() < 0.9) ? 52000 : 53000; // 52-53k AICOIN (~5 VND)
+                let reward = (Math.random() < 0.9) ? 52000 : 53000;
                 aicoin += reward; 
                 localStorage.setItem('lastAdTime', Date.now());
-                updateUI(); 
-                
-                let rewardInVnd = (reward / AICOIN_TO_VND_RATE * 1000).toFixed(1);
-                showMessage("CHÚC MỪNG! BẠN NHẬN ĐƯỢC " + reward.toLocaleString() + " AICOIN (" + rewardInVnd + " VND)");
+                updateUI();
+                saveDataToServer();
+                showMessage("CHÚC MỪNG! BẠN NHẬN ĐƯỢC " + reward.toLocaleString() + " AICOIN");
             });
-        } else { showMessage("QUẢNG CÁO CHƯA SẴN SÀNG!"); }
+        } else { 
+            showMessage("QUẢNG CÁO CHƯA SẴN SÀNG!"); 
+        }
     }
 
     function confirmExchange() {
@@ -275,7 +325,10 @@
         if (!amount || amount <= 0) { showMessage("VUI LÒNG NHẬP SỐ LƯỢNG!"); return; }
         if (amount > aicoin) { showMessage("KHÔNG ĐỦ AICOIN!"); return; }
         let vndEarned = amount / AICOIN_TO_VND_RATE * 1000;
-        aicoin -= amount; vnd += vndEarned; updateUI(); 
+        aicoin -= amount; 
+        vnd += vndEarned; 
+        updateUI();
+        saveDataToServer();
         showMessage("ĐỔI THÀNH CÔNG!"); 
         document.getElementById('exchangeAmount').value = '';
         document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
@@ -339,7 +392,8 @@
             if(response.ok) {
                 showMessage("✅ GỬI YÊU CẦU THÀNH CÔNG!\nVUI LÒNG CHỜ ADMIN DUYỆT!"); 
                 vnd -= amount;
-                updateUI(); 
+                updateUI();
+                saveDataToServer();
                 document.getElementById('withdrawAmount').value = '';
                 document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
             } else { 
