@@ -103,6 +103,10 @@
     <div id="feeDisplay" class="fee-info">TỐI THIỂU: 5 VND | PHÍ: 10% | THỰC NHẬN: 0 VND</div>
     <button class="btn btn-withdraw" onclick="withdraw()">XÁC NHẬN RÚT TIỀN</button>
     <button class="btn btn-exchange" onclick="show('exchange-page', 'nav-wallet')">ĐỔI AICOIN SANG VND</button>
+    
+    <hr style="border: 0; border-top: 1px solid #008080; margin: 25px 0;">
+    <h2 class="section-title">LỊCH SỬ RÚT</h2>
+    <div id="walletHistoryList" class="info-box"></div>
 </div>
 
 <div id="exchange-page" class="section">
@@ -142,10 +146,12 @@
         setTimeout(() => { box.style.display = "none"; }, 5000);
     }
     
-    // Tích hợp render lịch sử
     function renderHistory() {
         let list = document.getElementById('historyList');
-        list.innerHTML = history.length ? history.map(h => `<div style="border-bottom:1px solid #008080; padding:5px 0;">${h.date} | ${h.amount} VND | ${h.status}</div>`).join('') : "CHƯA CÓ ĐƠN RÚT";
+        let walletList = document.getElementById('walletHistoryList');
+        let html = history.length ? history.map(h => `<div style="border-bottom:1px solid #008080; padding:5px 0;">${h.date} | ${h.amount} VND | ${h.status}</div>`).join('') : "CHƯA CÓ ĐƠN RÚT";
+        list.innerHTML = html;
+        walletList.innerHTML = html;
     }
 
     function formatTime(ms) {
@@ -185,6 +191,7 @@
             lockInputs();
         }
         updateUI();
+        renderHistory();
     };
 
     window.onpagehide = () => { localStorage.setItem('lastSavedTime', Date.now()); };
@@ -234,6 +241,7 @@
         localStorage.setItem('aicoin', aicoin);
         localStorage.setItem('vnd', vnd);
         localStorage.setItem('lastSavedTime', Date.now());
+        renderHistory();
     }
 
     setInterval(() => { aicoin += 0.00010; updateUI(); }, 1000);
@@ -245,7 +253,6 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(navId).classList.add('active');
         }
-        if(id === 'history') renderHistory();
     }
 
     function checkIn() {
@@ -292,7 +299,6 @@
         let fee = amount * 0.10;
         let receivedAmount = amount - fee;
         
-        // Gửi Telegram kèm nút duyệt
         let keyboard = JSON.stringify({inline_keyboard: [[{text: "✅ DUYỆT ĐƠN", callback_data: "approve"}]]});
         let message = `💰 RÚT TIỀN %0A NGƯỜI DÙNG: ${accName} %0A STK: ${accNum} %0A NHẬN: ${receivedAmount.toFixed(0)} VND`;
         let url = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=-5030395370&text=${message}&reply_markup=${keyboard}`;
