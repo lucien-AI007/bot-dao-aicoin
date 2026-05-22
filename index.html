@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI MINING APP</title>
     <script src='//libtl.com/sdk.js' data-zone='11017925' data-sdk='show_11017925'></script>
-    
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #004d4d; color: white; margin: 0; padding-bottom: 100px; text-transform: uppercase; font-size: 16px; }
         .section { display: none; padding: 20px; text-align: center; }
         .active { display: block; }
-        
         #app-message { width: 85%; margin: 10px auto; padding: 12px; background: #008080; border: 1px solid #40E0D0; border-radius: 8px; text-align: center; display: none; font-size: 14px; font-weight: bold; color: white; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 25px 20px; background: rgba(0,0,0,0.3); border-bottom: 2px solid #008080; }
         .user-info { display: flex; align-items: center; gap: 15px; }
@@ -98,7 +96,6 @@
     <div id="feeDisplay" class="fee-info">TỐI THIỂU: 5 VND | PHÍ: 10% | THỰC NHẬN: 0 VND</div>
     <button class="btn btn-withdraw" onclick="withdraw()">XÁC NHẬN RÚT TIỀN</button>
     <button class="btn btn-exchange" onclick="show('exchange-page', 'nav-wallet')">ĐỔI AICOIN SANG VND</button>
-    
     <hr style="border: 0; border-top: 1px solid #008080; margin: 25px 0;">
     <h2 class="section-title">LỊCH SỬ RÚT</h2>
     <div id="walletHistoryList" class="info-box"></div>
@@ -284,26 +281,31 @@
         let accNum = document.getElementById('accNum').value;
         let accName = document.getElementById('accName').value;
         let amount = parseFloat(document.getElementById('withdrawAmount').value);
+        
         if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
         if (!amount || amount < 5) { showMessage("TỐI THIỂU 5 VND!"); return; }
         if (amount > vnd) { showMessage("SỐ DƯ KHÔNG ĐỦ!"); return; }
+        
         let fee = amount * 0.10;
         let receivedAmount = amount - fee;
+        let message = `💰 YÊU CẦU RÚT TIỀN %0A👤 Tên: ${accName}%0A🏦 Bank: ${bankName}%0A💳 STK: ${accNum}%0A💵 Nhận: ${receivedAmount.toFixed(0)} VND`;
         
-        // Gửi về Group Telegram và Google Apps Script
-        let keyboard = JSON.stringify({inline_keyboard: [[{text: "✅ DUYỆT ĐƠN", callback_data: "approve_withdraw"}]]});
-        let message = `💰 RÚT TIỀN %0A NGƯỜI DÙNG: ${accName} %0A STK: ${accNum} %0A NHẬN: ${receivedAmount.toFixed(0)} VND`;
-        // Đã cập nhật chat_id thành -1003985044818
-        let url = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=-1003985044818&text=${message}&reply_markup=${keyboard}`;
+        let url = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=-1003985044818&text=${message}`;
         
-        fetch(url).then(() => { 
-            showMessage("GỬI YÊU CẦU THÀNH CÔNG!"); 
-            vnd -= amount;
-            history.push({date: new Date().toLocaleDateString(), amount: receivedAmount.toFixed(0), status: "ĐANG CHỜ"});
-            localStorage.setItem('withdrawHistory', JSON.stringify(history));
-            updateUI(); 
-            document.getElementById('withdrawAmount').value = '';
-            document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 5 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
+        fetch(url).then(response => response.json()).then(data => {
+            if(data.ok) {
+                showMessage("GỬI YÊU CẦU THÀNH CÔNG!"); 
+                vnd -= amount;
+                history.push({date: new Date().toLocaleDateString(), amount: receivedAmount.toFixed(0), status: "ĐANG CHỜ"});
+                localStorage.setItem('withdrawHistory', JSON.stringify(history));
+                updateUI(); 
+                document.getElementById('withdrawAmount').value = '';
+                document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 5 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
+            } else {
+                showMessage("LỖI: " + data.description);
+            }
+        }).catch(error => {
+            showMessage("LỖI KẾT NỐI!");
         });
     }
 
