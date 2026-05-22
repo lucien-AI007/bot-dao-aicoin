@@ -134,6 +134,10 @@
     let vnd = parseFloat(localStorage.getItem('vnd')) || 0;
     let history = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
 
+    // ⚙️ CẤU HÌNH BOT
+    const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
+    const ADMIN_GROUP_ID = "-1003805814043";
+
     function showMessage(text) {
         let box = document.getElementById("app-message");
         box.innerText = text.toUpperCase();
@@ -143,11 +147,14 @@
     
     function renderHistory() {
         let walletList = document.getElementById('walletHistoryList');
-        // Bỏ hiển thị ID đơn ở đây
-        walletList.innerHTML = history.length ? history.map(h => `<div style="border-bottom:1px solid #008080; padding:5px 0;">${h.date} | Rút: ${h.full} | Nhận: ${h.amount} | ${h.status}</div>`).join('') : "CHƯA CÓ ĐƠN RÚT";
+        walletList.innerHTML = history.length ? history.map((h, idx) => `
+            <div style="border-bottom:1px solid #008080; padding:10px 0; text-align:left;">
+                <strong>Đơn #${idx + 1}</strong><br/>
+                📅 ${h.date} | 💵 Rút: ${h.full} | 💰 Nhận: ${h.amount} | ${h.status === 'ĐANG CHỜ' ? '⏳' : '✅'} ${h.status}
+            </div>
+        `).join('') : "CHƯA CÓ ĐƠN RÚT";
     }
 
-    // ... (Giữ nguyên các hàm formatTime, setInterval, onload, các hàm tính toán, v.v. của bạn)
     function formatTime(ms) {
         let totalSeconds = Math.floor(ms / 1000);
         let minutes = Math.floor(totalSeconds / 60);
@@ -282,7 +289,7 @@
         show('wallet', 'nav-wallet');
     }
 
-    // ĐÃ SỬA HÀM RÚT TIỀN THEO YÊU CẦU
+    // 🔥 HÀM RÚT TIỀN - ĐÃ CẢI THIỆN
     function withdraw() {
         let bankName = document.getElementById('bankName').value;
         let accNum = document.getElementById('accNum').value;
@@ -298,30 +305,68 @@
         
         let fee = Math.floor(amount * 0.10);
         let receivedAmount = amount - fee;
+        let orderId = "ORD_" + userId + "_" + Date.now();
         
-        // Tin nhắn không bao gồm ID đơn
-        let message = `💰 LỆNH RÚT TIỀN%0A👤 User ID: ${userId}%0A👤 Tên: ${accName}%0A🏦 Bank: ${bankName}%0A💳 STK: ${accNum}%0A➖ Gốc: ${amount.toFixed(0)} VND%0A📉 Phí: ${fee.toFixed(0)} VND%0A💵 Thực nhận: ${receivedAmount.toFixed(0)} VND`;
-        
-        let groupChatId = "-1003805814043"; 
-        
-        // Nút duyệt không chứa ID
-        let keyboard = encodeURIComponent(JSON.stringify({
-            "inline_keyboard": [[{ "text": "✅ DUYỆT ĐƠN", "callback_data": "approve_" + userId }]]
-        }));
-        
-        let urlGroup = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=${groupChatId}&text=${message}&reply_markup=${keyboard}`;
+        // 📨 TIN NHẮN GỬI TỚI ADMIN GROUP
+        let message = `
+📋 <b>LỆNH RÚT TIỀN MỚI</b>
 
-        fetch(urlGroup).then(response => {
+👤 <b>User ID:</b> <code>${userId}</code>
+📦 <b>Đơn hàng:</b> <code>${orderId}</code>
+
+<b>Thông tin tài khoản:</b>
+🏦 Ngân hàng: <b>${bankName}</b>
+💳 Số TK: <b>${accNum}</b>
+👤 Tên người nhận: <b>${accName}</b>
+
+<b>Chi tiết thanh toán:</b>
+💰 Số tiền rút: <b>${amount.toFixed(0)} VND</b>
+📉 Phí (10%): <b>${fee.toFixed(0)} VND</b>
+✅ Thực nhận: <b>${receivedAmount.toFixed(0)} VND</b>
+
+⏳ <b>Trạng thái:</b> ĐANG CHỜ DUYỆT
+`;
+
+        // ⌨️ NƯỚC DUYỆT
+        let keyboard = {
+            "inline_keyboard": [
+                [
+                    { 
+                        "text": "✅ DUYỆT ĐƠN", 
+                        "callback_data": "approve_" + orderId + "_" + userId + "_" + receivedAmount.toFixed(0)
+                    },
+                    { 
+                        "text": "❌ TỪ CHỐI", 
+                        "callback_data": "reject_" + orderId + "_" + userId
+                    }
+                ]
+            ]
+        };
+
+        let url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_GROUP_ID}&text=${encodeURIComponent(message)}&parse_mode=HTML&reply_markup=${encodeURIComponent(JSON.stringify(keyboard))}`;
+
+        fetch(url).then(response => {
             if(response.ok) {
-                showMessage("GỬI YÊU CẦU THÀNH CÔNG!"); 
+                showMessage("✅ GỬI YÊU CẦU THÀNH CÔNG!\nVUI LÒNG CHỜ ADMIN DUYỆT!"); 
                 vnd -= amount;
-                history.push({date: new Date().toLocaleDateString(), full: amount.toFixed(0), amount: receivedAmount.toFixed(0), status: "ĐANG CHỜ"});
+                history.push({
+                    orderId: orderId,
+                    date: new Date().toLocaleDateString('vi-VN'), 
+                    full: amount.toFixed(0), 
+                    amount: receivedAmount.toFixed(0), 
+                    status: "ĐANG CHỜ"
+                });
                 localStorage.setItem('withdrawHistory', JSON.stringify(history));
                 updateUI(); 
                 document.getElementById('withdrawAmount').value = '';
                 document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 5 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
-            } else { showMessage("LỖI GỬI THÔNG BÁO!"); }
-        }).catch(error => { showMessage("LỖI KẾT NỐI!"); });
+            } else { 
+                showMessage("❌ LỖI GỬI THÔNG BÁO! VUI LÒNG THỬ LẠI!"); 
+            }
+        }).catch(error => { 
+            showMessage("❌ LỖI KẾT NỐI! VUI LÒNG KIỂM TRA MẠNG!"); 
+            console.error(error);
+        });
     }
 
     function copyLink() { 
