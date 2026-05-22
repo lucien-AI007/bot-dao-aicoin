@@ -103,7 +103,7 @@
 <div id="exchange-page" class="section">
     <h2 class="section-title">QUY ĐỔI</h2>
     <input type="number" id="exchangeAmount" placeholder="NHẬP SỐ AICOIN" oninput="calculateExchange()">
-    <div id="exchangeDisplay" class="info-msg">TỶ LỆ: 3.000 AICOIN = 1 VND | NHẬN ĐƯỢC: 0 VND</div>
+    <div id="exchangeDisplay" class="info-msg">TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND</div>
     <button class="btn btn-exchange" onclick="confirmExchange()">XÁC NHẬN ĐỔI</button>
     <button class="btn" style="background: #333;" onclick="show('wallet', 'nav-wallet')">QUAY LẠI VÍ</button>
 </div>
@@ -131,6 +131,10 @@
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
     const MIN_WITHDRAW = 1000;
+    
+    // 🔥 THAY ĐỔI TỶ LỆ & MINING
+    const AICOIN_TO_VND_RATE = 10000000; // 10 triệu AICOIN = 1k VND
+    const MINING_PER_SECOND = 2.893; // ~250k AICOIN/ngày = 25 VND/ngày
 
     function showMessage(text) {
         let box = document.getElementById("app-message");
@@ -166,7 +170,7 @@
         let lastTime = localStorage.getItem('lastSavedTime');
         if (lastTime) {
             let elapsed = (Date.now() - parseInt(lastTime)) / 1000;
-            if (elapsed > 0) aicoin += elapsed * 0.00010;
+            if (elapsed > 0) aicoin += elapsed * MINING_PER_SECOND;
         }
         let savedBank = localStorage.getItem('bankName');
         if(savedBank) {
@@ -183,8 +187,8 @@
 
     function calculateExchange() {
         let amount = parseFloat(document.getElementById('exchangeAmount').value) || 0;
-        let vndEarned = amount / 3000;
-        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 3.000 AICOIN = 1 VND | NHẬN ĐƯỢC: " + Math.floor(vndEarned).toLocaleString() + " VND";
+        let vndEarned = amount / AICOIN_TO_VND_RATE;
+        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: " + Math.floor(vndEarned * 1000).toLocaleString() + " VND";
     }
 
     function calculateWithdrawFee() {
@@ -227,7 +231,11 @@
         localStorage.setItem('lastSavedTime', Date.now());
     }
 
-    setInterval(() => { aicoin += 0.00010; updateUI(); }, 1000);
+    // 🔥 THAY ĐỔI: Mining từ 0.00010 → 2.893/giây
+    setInterval(() => { 
+        aicoin += MINING_PER_SECOND; 
+        updateUI(); 
+    }, 1000);
 
     function show(id, navId) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -250,11 +258,14 @@
     function watchAd() {
         if (typeof show_11017925 === 'function') {
             show_11017925().then(() => {
-                let reward = (Math.random() < 0.9) ? (Math.floor(Math.random() * 10) + 1) : (Math.floor(Math.random() * 11) + 10);
-                vnd += reward; 
+                // 🔥 THAY ĐỔI: Nhận AICOIN thay VND
+                let reward = (Math.random() < 0.9) ? 52000 : 53000; // 52-53k AICOIN (~5 VND)
+                aicoin += reward; 
                 localStorage.setItem('lastAdTime', Date.now());
                 updateUI(); 
-                showMessage("CHÚC MỪNG! BẠN NHẬN ĐƯỢC " + reward + " VND");
+                
+                let rewardInVnd = (reward / AICOIN_TO_VND_RATE * 1000).toFixed(1);
+                showMessage("CHÚC MỪNG! BẠN NHẬN ĐƯỢC " + reward.toLocaleString() + " AICOIN (" + rewardInVnd + " VND)");
             });
         } else { showMessage("QUẢNG CÁO CHƯA SẴN SÀNG!"); }
     }
@@ -263,11 +274,11 @@
         let amount = parseInt(document.getElementById('exchangeAmount').value);
         if (!amount || amount <= 0) { showMessage("VUI LÒNG NHẬP SỐ LƯỢNG!"); return; }
         if (amount > aicoin) { showMessage("KHÔNG ĐỦ AICOIN!"); return; }
-        let vndEarned = amount / 3000;
+        let vndEarned = amount / AICOIN_TO_VND_RATE * 1000;
         aicoin -= amount; vnd += vndEarned; updateUI(); 
         showMessage("ĐỔI THÀNH CÔNG!"); 
         document.getElementById('exchangeAmount').value = '';
-        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 3.000 AICOIN = 1 VND | NHẬN ĐƯỢC: 0 VND";
+        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
         show('wallet', 'nav-wallet');
     }
 
