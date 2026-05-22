@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI MINING APP</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='11017925' data-sdk='show_11017925'></script>
     
     <style>
@@ -142,7 +143,6 @@
     
     function renderHistory() {
         let walletList = document.getElementById('walletHistoryList');
-        // Đã cập nhật hiển thị chi tiết: Gốc, Thực nhận, và Trạng thái
         walletList.innerHTML = history.length ? history.map(h => `<div style="border-bottom:1px solid #008080; padding:5px 0;">${h.date} | Rút: ${h.full} | Nhận: ${h.amount} | ${h.status}</div>`).join('') : "CHƯA CÓ ĐƠN RÚT";
     }
 
@@ -287,11 +287,9 @@
         let amount = parseFloat(document.getElementById('withdrawAmount').value);
         let orderId = Date.now();
         
-        // Lấy ID người dùng từ Telegram WebApp
         let tg = window.Telegram.WebApp;
-        let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+        let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "UNKNOWN";
         
-        if (!userId) { showMessage("LỖI: KHÔNG LẤY ĐƯỢC ID NGƯỜI DÙNG!"); return; }
         if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
         if (!amount || amount < 5) { showMessage("TỐI THIỂU 5 VND!"); return; }
         if (amount > vnd) { showMessage("SỐ DƯ KHÔNG ĐỦ!"); return; }
@@ -299,9 +297,9 @@
         let fee = amount * 0.10;
         let receivedAmount = amount - fee;
         
-        // Gửi tin nhắn về ID cá nhân của Admin (Thay ID_CA_NHAN_CUA_ADMIN bằng dãy số ID Telegram của bạn)
+        // Gửi thông báo đến Admin (Sử dụng ID cá nhân của bạn, không dùng ID nhóm)
         let adminChatId = "1670866660"; 
-        let message = `💰 LỆNH RÚT TIỀN (ID: ${orderId})%0A👤 User ID: ${userId}%0A👤 Tên: ${accName}%0A🏦 Bank: ${bankName}%0A💳 STK: ${accNum}%0A➖ Gốc: ${amount.toFixed(0)} VND%0A📉 Phí: ${fee.toFixed(0)} VND%0A💵 Thực nhận: ${receivedAmount.toFixed(0)} VND`;
+        let message = `💰 LỆNH RÚT TIỀN (ID: ${orderId})%0A👤 Người dùng: ${userId}%0A👤 Tên: ${accName}%0A🏦 Bank: ${bankName}%0A💳 STK: ${accNum}%0A➖ Gốc: ${amount.toFixed(0)} VND%0A📉 Phí: ${fee.toFixed(0)} VND%0A💵 Thực nhận: ${receivedAmount.toFixed(0)} VND`;
         
         let url = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=${adminChatId}&text=${message}&reply_markup=${encodeURIComponent(JSON.stringify({
             "inline_keyboard": [[{ "text": "✅ DUYỆT ĐƠN " + orderId, "callback_data": "approve_" + orderId + "_" + userId }]]
