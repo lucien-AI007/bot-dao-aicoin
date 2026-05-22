@@ -40,15 +40,9 @@
         input { width: 90%; padding: 16px; margin: 10px 0; border-radius: 10px; border: 1px solid #006666; background: #002626; color: white; text-align: center; font-size: 15px; }
         input:disabled { background: #001a1a; color: #888; border-color: #333; }
         #refLink { text-transform: none; }
-        
-        /* 🎨 Style cho trạng thái */
-        .status-waiting { color: #ffa500; }
-        .status-approved { color: #00ff00; }
-        .status-rejected { color: #ff0000; }
     </style>
 </head>
 <body>
-
 <div class="header">
     <div class="user-info">
         <div class="username">MINE AICOIN</div>
@@ -101,7 +95,7 @@
     <hr style="border: 0; border-top: 1px solid #008080; margin: 25px 0;">
     <h2 class="section-title">RÚT TIỀN</h2>
     <input type="number" id="withdrawAmount" placeholder="SỐ TIỀN MUỐN RÚT (VND)" oninput="calculateWithdrawFee()">
-    <div id="feeDisplay" class="fee-info">TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: 0 VND</div>
+    <div id="feeDisplay" class="fee-info">TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: 0 VND</div>
     <button class="btn btn-withdraw" onclick="withdraw()">XÁC NHẬN RÚT TIỀN</button>
     <button class="btn btn-exchange" onclick="show('exchange-page', 'nav-wallet')">ĐỔI AICOIN SANG VND</button>
     
@@ -139,10 +133,9 @@
     let vnd = parseFloat(localStorage.getItem('vnd')) || 0;
     let history = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
 
-    // ⚙️ CẤU HÌNH BOT
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
-    const MIN_WITHDRAW = 1000;
+    const MIN_WITHDRAW = 1; // 🔥 TEST: TỐI THIỂU 1 VND
 
     function showMessage(text) {
         let box = document.getElementById("app-message");
@@ -154,27 +147,14 @@
     function renderHistory() {
         let walletList = document.getElementById('walletHistoryList');
         walletList.innerHTML = history.length ? history.map((h, idx) => {
-            let statusClass = '';
-            let statusIcon = '';
-            
-            if (h.status === 'ĐANG CHỜ') {
-                statusClass = 'status-waiting';
-                statusIcon = '⏳';
-            } else if (h.status === 'ĐÃ DUYỆT') {
-                statusClass = 'status-approved';
-                statusIcon = '✅';
-            } else if (h.status === 'TỪ CHỐI') {
-                statusClass = 'status-rejected';
-                statusIcon = '❌';
-            }
-            
+            let statusIcon = h.status === 'ĐANG CHỜ' ? '⏳' : h.status === 'ĐÃ DUYỆT' ? '✅' : '❌';
+            let statusColor = h.status === 'ĐANG CHỜ' ? '#FFB800' : h.status === 'ĐÃ DUYỆT' ? '#00FF00' : '#FF6666';
             return `
-                <div style="border-bottom:1px solid #008080; padding:10px 0; text-align:left;">
-                    <strong>Đơn #${idx + 1}</strong><br/>
-                    📅 ${h.date} | 💵 Rút: ${h.full} | 💰 Nhận: ${h.amount} | <span class="${statusClass}"><b>${statusIcon} ${h.status}</b></span>
-                </div>
-            `;
-        }).join('') : "CHƯA CÓ ĐƠN RÚT";
+            <div style="border-bottom:1px solid #008080; padding:10px 0; text-align:left;">
+                <strong>Đơn #${idx + 1}</strong><br/>
+                📅 ${h.date} | 💵 Rút: ${h.full} | 💰 Nhận: ${h.amount} | <span style="color:${statusColor};">${statusIcon} ${h.status}</span>
+            </div>
+        `}).join('') : "CHƯA CÓ ĐƠN RÚT";
     }
 
     function formatTime(ms) {
@@ -215,9 +195,6 @@
         }
         updateUI();
         renderHistory();
-        
-        // 🔥 LẮNG NGHE CẬP NHẬT TỪ BOT
-        setupBotUpdateListener();
     };
 
     window.onpagehide = () => { localStorage.setItem('lastSavedTime', Date.now()); };
@@ -233,7 +210,7 @@
         let amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
         let fee = Math.floor(amount * 0.10);
         let received = amount - fee;
-        document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: " + Math.floor(received).toLocaleString() + " VND";
+        document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: " + Math.floor(received).toLocaleString() + " VND";
     }
 
     function lockInputs() {
@@ -314,7 +291,6 @@
         show('wallet', 'nav-wallet');
     }
 
-    // 🔥 HÀM RÚT TIỀN
     function withdraw() {
         let bankName = document.getElementById('bankName').value;
         let accNum = document.getElementById('accNum').value;
@@ -325,7 +301,7 @@
         let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "UNKNOWN";
         
         if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
-        if (!amount || amount < MIN_WITHDRAW) { showMessage("TỐI THIỂU 1.000 VND!"); return; }
+        if (!amount || amount < MIN_WITHDRAW) { showMessage("TỐI THIỂU " + MIN_WITHDRAW + " VND!"); return; }
         if (amount > vnd) { showMessage("SỐ DƯ KHÔNG ĐỦ!"); return; }
         
         let fee = Math.floor(amount * 0.10);
@@ -377,13 +353,12 @@
                     date: new Date().toLocaleDateString('vi-VN'), 
                     full: amount.toFixed(0), 
                     amount: receivedAmount.toFixed(0), 
-                    status: "ĐANG CHỜ",
-                    timestamp: Date.now()
+                    status: "ĐANG CHỜ"
                 });
                 localStorage.setItem('withdrawHistory', JSON.stringify(history));
                 updateUI(); 
                 document.getElementById('withdrawAmount').value = '';
-                document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
+                document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
             } else { 
                 showMessage("❌ LỖI GỬI THÔNG BÁO! VUI LÒNG THỬ LẠI!"); 
             }
@@ -391,53 +366,6 @@
             showMessage("❌ LỖI KẾT NỐI! VUI LÒNG KIỂM TRA MẠNG!"); 
             console.error(error);
         });
-    }
-
-    // 🔥 LẮNG NGHE CẬP NHẬT TỪ BOT
-    function setupBotUpdateListener() {
-        // Check mỗi 5 giây xem có đơn nào chuyển từ "ĐANG CHỜ" -> "ĐÃ DUYỆT" không
-        setInterval(() => {
-            let currentHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
-            let needUpdate = false;
-            
-            currentHistory.forEach((h, idx) => {
-                if (h.status === "ĐANG CHỜ") {
-                    // Nếu đơn chờ quá 5 phút mà không có tin nhắn
-                    let timePassed = Date.now() - h.timestamp;
-                    
-                    // Sau 1 phút, kiểm tra xem admin đã duyệt chưa
-                    if (timePassed > 60000) {
-                        // Nếu admin duyệt (via bot callback) thì status sẽ được update
-                        // Hàm này chỉ kiểm tra xem có cập nhật không
-                    }
-                }
-            });
-            
-            if (needUpdate) {
-                history = currentHistory;
-                renderHistory();
-            }
-        }, 5000);
-    }
-
-    // 🔥 HÀM CẬP NHẬT TRẠNG THÁI (Gọi từ Google Apps Script)
-    function updateWithdrawStatus(orderId, newStatus) {
-        let currentHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
-        
-        currentHistory.forEach((h, idx) => {
-            if (h.orderId === orderId) {
-                h.status = newStatus;
-                if (newStatus === "ĐÃ DUYỆT") {
-                    showMessage("✅ ĐƠN RÚT TIỀN ĐÃ ĐƯỢC DUYỆT!");
-                } else if (newStatus === "TỪ CHỐI") {
-                    showMessage("❌ ĐƠN RÚT TIỀN BỊ TỪ CHỐI!");
-                }
-            }
-        });
-        
-        localStorage.setItem('withdrawHistory', JSON.stringify(currentHistory));
-        history = currentHistory;
-        renderHistory();
     }
 
     function copyLink() { 
