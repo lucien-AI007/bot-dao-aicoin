@@ -98,10 +98,6 @@
     <div id="feeDisplay" class="fee-info">TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: 0 VND</div>
     <button class="btn btn-withdraw" onclick="withdraw()">XÁC NHẬN RÚT TIỀN</button>
     <button class="btn btn-exchange" onclick="show('exchange-page', 'nav-wallet')">ĐỔI AICOIN SANG VND</button>
-    
-    <hr style="border: 0; border-top: 1px solid #008080; margin: 25px 0;">
-    <h2 class="section-title">LỊCH SỬ RÚT</h2>
-    <div id="walletHistoryList" class="info-box"></div>
 </div>
 
 <div id="exchange-page" class="section">
@@ -131,30 +127,16 @@
 <script>
     let aicoin = parseFloat(localStorage.getItem('aicoin')) || 0;
     let vnd = parseFloat(localStorage.getItem('vnd')) || 0;
-    let history = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
 
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
-    const MIN_WITHDRAW = 1000; // 🔥 TỐI THIỂU 1.000 VND
+    const MIN_WITHDRAW = 1000;
 
     function showMessage(text) {
         let box = document.getElementById("app-message");
         box.innerText = text.toUpperCase();
         box.style.display = "block";
         setTimeout(() => { box.style.display = "none"; }, 5000);
-    }
-    
-    function renderHistory() {
-        let walletList = document.getElementById('walletHistoryList');
-        walletList.innerHTML = history.length ? history.map((h, idx) => {
-            let statusIcon = h.status === 'ĐANG CHỜ' ? '⏳' : h.status === 'ĐÃ DUYỆT' ? '✅' : '❌';
-            let statusColor = h.status === 'ĐANG CHỜ' ? '#FFB800' : h.status === 'ĐÃ DUYỆT' ? '#00FF00' : '#FF6666';
-            return `
-            <div style="border-bottom:1px solid #008080; padding:10px 0; text-align:left;">
-                <strong>Đơn #${idx + 1}</strong><br/>
-                📅 ${h.date} | 💵 Rút: ${h.full} | 💰 Nhận: ${h.amount} | <span style="color:${statusColor};">${statusIcon} ${h.status}</span>
-            </div>
-        `}).join('') : "CHƯA CÓ ĐƠN RÚT";
     }
 
     function formatTime(ms) {
@@ -194,7 +176,6 @@
             lockInputs();
         }
         updateUI();
-        renderHistory();
     };
 
     window.onpagehide = () => { localStorage.setItem('lastSavedTime', Date.now()); };
@@ -244,7 +225,6 @@
         localStorage.setItem('aicoin', aicoin);
         localStorage.setItem('vnd', vnd);
         localStorage.setItem('lastSavedTime', Date.now());
-        renderHistory();
     }
 
     setInterval(() => { aicoin += 0.00010; updateUI(); }, 1000);
@@ -348,14 +328,6 @@
             if(response.ok) {
                 showMessage("✅ GỬI YÊU CẦU THÀNH CÔNG!\nVUI LÒNG CHỜ ADMIN DUYỆT!"); 
                 vnd -= amount;
-                history.push({
-                    orderId: orderId,
-                    date: new Date().toLocaleDateString('vi-VN'), 
-                    full: amount.toFixed(0), 
-                    amount: receivedAmount.toFixed(0), 
-                    status: "ĐANG CHỜ"
-                });
-                localStorage.setItem('withdrawHistory', JSON.stringify(history));
                 updateUI(); 
                 document.getElementById('withdrawAmount').value = '';
                 document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
