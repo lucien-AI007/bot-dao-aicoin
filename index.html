@@ -143,9 +143,11 @@
     
     function renderHistory() {
         let walletList = document.getElementById('walletHistoryList');
+        // Bỏ hiển thị ID đơn ở đây
         walletList.innerHTML = history.length ? history.map(h => `<div style="border-bottom:1px solid #008080; padding:5px 0;">${h.date} | Rút: ${h.full} | Nhận: ${h.amount} | ${h.status}</div>`).join('') : "CHƯA CÓ ĐƠN RÚT";
     }
 
+    // ... (Giữ nguyên các hàm formatTime, setInterval, onload, các hàm tính toán, v.v. của bạn)
     function formatTime(ms) {
         let totalSeconds = Math.floor(ms / 1000);
         let minutes = Math.floor(totalSeconds / 60);
@@ -280,12 +282,12 @@
         show('wallet', 'nav-wallet');
     }
 
+    // ĐÃ SỬA HÀM RÚT TIỀN THEO YÊU CẦU
     function withdraw() {
         let bankName = document.getElementById('bankName').value;
         let accNum = document.getElementById('accNum').value;
         let accName = document.getElementById('accName').value;
         let amount = parseFloat(document.getElementById('withdrawAmount').value);
-        let orderId = Date.now();
         
         let tg = window.Telegram.WebApp;
         let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "UNKNOWN";
@@ -297,27 +299,29 @@
         let fee = Math.floor(amount * 0.10);
         let receivedAmount = amount - fee;
         
-        let message = `💰 LỆNH RÚT TIỀN (ID: ${orderId})%0A👤 User ID: ${userId}%0A👤 Tên: ${accName}%0A🏦 Bank: ${bankName}%0A💳 STK: ${accNum}%0A➖ Gốc: ${amount.toFixed(0)} VND%0A📉 Phí: ${fee.toFixed(0)} VND%0A💵 Thực nhận: ${receivedAmount.toFixed(0)} VND`;
+        // Tin nhắn không bao gồm ID đơn
+        let message = `💰 LỆNH RÚT TIỀN%0A👤 User ID: ${userId}%0A👤 Tên: ${accName}%0A🏦 Bank: ${bankName}%0A💳 STK: ${accNum}%0A➖ Gốc: ${amount.toFixed(0)} VND%0A📉 Phí: ${fee.toFixed(0)} VND%0A💵 Thực nhận: ${receivedAmount.toFixed(0)} VND`;
         
         let groupChatId = "-1003805814043"; 
-        let adminChatId = "1670866660"; 
         
+        // Nút duyệt không chứa ID
         let keyboard = encodeURIComponent(JSON.stringify({
-            "inline_keyboard": [[{ "text": "✅ DUYỆT ĐƠN " + orderId, "callback_data": "approve_" + orderId + "_" + userId }]]
+            "inline_keyboard": [[{ "text": "✅ DUYỆT ĐƠN", "callback_data": "approve_" + userId }]]
         }));
         
         let urlGroup = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=${groupChatId}&text=${message}&reply_markup=${keyboard}`;
-        let urlAdmin = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=${adminChatId}&text=${message}`;
 
-        fetch(urlGroup).then(() => fetch(urlAdmin)).then(response => {
-            showMessage("GỬI YÊU CẦU THÀNH CÔNG!"); 
-            vnd -= amount;
-            history.push({id: orderId, date: new Date().toLocaleDateString(), full: amount.toFixed(0), amount: receivedAmount.toFixed(0), status: "ĐANG CHỜ"});
-            localStorage.setItem('withdrawHistory', JSON.stringify(history));
-            updateUI(); 
-            document.getElementById('withdrawAmount').value = '';
-            document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 5 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
-        }).catch(error => { showMessage("LỖI GỬI THÔNG BÁO!"); });
+        fetch(urlGroup).then(response => {
+            if(response.ok) {
+                showMessage("GỬI YÊU CẦU THÀNH CÔNG!"); 
+                vnd -= amount;
+                history.push({date: new Date().toLocaleDateString(), full: amount.toFixed(0), amount: receivedAmount.toFixed(0), status: "ĐANG CHỜ"});
+                localStorage.setItem('withdrawHistory', JSON.stringify(history));
+                updateUI(); 
+                document.getElementById('withdrawAmount').value = '';
+                document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 5 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
+            } else { showMessage("LỖI GỬI THÔNG BÁO!"); }
+        }).catch(error => { showMessage("LỖI KẾT NỐI!"); });
     }
 
     function copyLink() { 
