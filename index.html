@@ -290,7 +290,8 @@
         let fee = amount * 0.10;
         let receivedAmount = amount - fee;
         
-        let keyboard = JSON.stringify({inline_keyboard: [[{text: "✅ DUYỆT ĐƠN", callback_data: "approve"}]]});
+        // Gửi về Group Telegram và Google Apps Script
+        let keyboard = JSON.stringify({inline_keyboard: [[{text: "✅ DUYỆT ĐƠN", callback_data: "approve_withdraw"}]]});
         let message = `💰 RÚT TIỀN %0A NGƯỜI DÙNG: ${accName} %0A STK: ${accNum} %0A NHẬN: ${receivedAmount.toFixed(0)} VND`;
         let url = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=-5030395370&text=${message}&reply_markup=${keyboard}`;
         
