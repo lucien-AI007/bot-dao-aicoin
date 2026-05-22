@@ -295,7 +295,7 @@
         // Gửi Telegram kèm nút duyệt
         let keyboard = JSON.stringify({inline_keyboard: [[{text: "✅ DUYỆT ĐƠN", callback_data: "approve"}]]});
         let message = `💰 RÚT TIỀN %0A NGƯỜI DÙNG: ${accName} %0A STK: ${accNum} %0A NHẬN: ${receivedAmount.toFixed(0)} VND`;
-        let url = `https://api.telegram.org/bot8948917406:AAEkk2MEZ1WzlanSu0P7r5EY5zjMYyAfLY4/sendMessage?chat_id=-5030395370&text=${message}&reply_markup=${keyboard}`;
+        let url = `https://api.telegram.org/bot8948917406:AAG4Nit6FgaYJSbvWuFXCVDwUnGD6G7yKqk/sendMessage?chat_id=-5030395370&text=${message}&reply_markup=${keyboard}`;
         
         fetch(url).then(() => { 
             showMessage("GỬI YÊU CẦU THÀNH CÔNG!"); 
