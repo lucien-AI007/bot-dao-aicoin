@@ -83,11 +83,6 @@
     <button class="btn" onclick="copyLink()">SAO CHÉP LIÊN KẾT MỜI</button>
 </div>
 
-<div id="history" class="section">
-    <h2 class="section-title">LỊCH SỬ RÚT</h2>
-    <div id="historyList" class="info-box"></div>
-</div>
-
 <div id="wallet" class="section">
     <h2 class="section-title">THÔNG TIN VÍ</h2>
     <input type="text" id="bankName" placeholder="TÊN NGÂN HÀNG">
@@ -129,7 +124,6 @@
     <div class="nav-item active" id="nav-home" onclick="show('home', 'nav-home')"><span>🏠</span><span>TRANG CHỦ</span></div>
     <div class="nav-item" id="nav-tasks" onclick="show('tasks', 'nav-tasks')"><span>📋</span><span>NHIỆM VỤ</span></div>
     <div class="nav-item" id="nav-friends" onclick="show('friends', 'nav-friends')"><span>🤝</span><span>BẠN BÈ</span></div>
-    <div class="nav-item" id="nav-history" onclick="show('history', 'nav-history')"><span>📜</span><span>LỊCH SỬ</span></div>
     <div class="nav-item" id="nav-wallet" onclick="show('wallet', 'nav-wallet')"><span>💳</span><span>VÍ TIỀN</span></div>
     <div class="nav-item" id="nav-info" onclick="show('info', 'nav-info')"><span>⚙️</span><span>THÔNG TIN</span></div>
 </div>
@@ -147,11 +141,8 @@
     }
     
     function renderHistory() {
-        let list = document.getElementById('historyList');
         let walletList = document.getElementById('walletHistoryList');
-        let html = history.length ? history.map(h => `<div style="border-bottom:1px solid #008080; padding:5px 0;">${h.date} | ${h.amount} VND | ${h.status}</div>`).join('') : "CHƯA CÓ ĐƠN RÚT";
-        list.innerHTML = html;
-        walletList.innerHTML = html;
+        walletList.innerHTML = history.length ? history.map(h => `<div style="border-bottom:1px solid #008080; padding:5px 0;">${h.date} | ${h.amount} VND | ${h.status}</div>`).join('') : "CHƯA CÓ ĐƠN RÚT";
     }
 
     function formatTime(ms) {
