@@ -285,8 +285,13 @@
         let accNum = document.getElementById('accNum').value;
         let accName = document.getElementById('accName').value;
         let amount = parseFloat(document.getElementById('withdrawAmount').value);
-        let orderId = Date.now(); // ID duy nhất để đối chiếu
+        let orderId = Date.now();
         
+        // Lấy ID người dùng từ Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+        
+        if (!userId) { showMessage("LỖI: KHÔNG LẤY ĐƯỢC ID NGƯỜI DÙNG!"); return; }
         if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
         if (!amount || amount < 5) { showMessage("TỐI THIỂU 5 VND!"); return; }
         if (amount > vnd) { showMessage("SỐ DƯ KHÔNG ĐỦ!"); return; }
@@ -294,19 +299,18 @@
         let fee = amount * 0.10;
         let receivedAmount = amount - fee;
         
-        // Gửi lệnh cho người dùng (cần thay ID cụ thể của user hoặc để bot gửi trả về chat riêng)
-        let message = `💰 LỆNH RÚT TIỀN (ID: ${orderId})%0A👤 Tên: ${accName}%0A🏦 Bank: ${bankName}%0A💳 STK: ${accNum}%0A➖ Gốc: ${amount.toFixed(0)} VND%0A📉 Phí: ${fee.toFixed(0)} VND%0A💵 Thực nhận: ${receivedAmount.toFixed(0)} VND`;
+        // Gửi tin nhắn về ID cá nhân của Admin (Thay ID_CA_NHAN_CUA_ADMIN bằng dãy số ID Telegram của bạn)
+        let adminChatId = "1670866660"; 
+        let message = `💰 LỆNH RÚT TIỀN (ID: ${orderId})%0A👤 User ID: ${userId}%0A👤 Tên: ${accName}%0A🏦 Bank: ${bankName}%0A💳 STK: ${accNum}%0A➖ Gốc: ${amount.toFixed(0)} VND%0A📉 Phí: ${fee.toFixed(0)} VND%0A💵 Thực nhận: ${receivedAmount.toFixed(0)} VND`;
         
-        // Bạn cần cấu hình Bot gửi cho đúng chatID của người dùng đó
-        let url = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=ID_NGUOI_DUNG&text=${message}&reply_markup=${encodeURIComponent(JSON.stringify({
-            "inline_keyboard": [[{ "text": "✅ DUYỆT ĐƠN " + orderId, "callback_data": "approve_" + orderId }]]
+        let url = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=${adminChatId}&text=${message}&reply_markup=${encodeURIComponent(JSON.stringify({
+            "inline_keyboard": [[{ "text": "✅ DUYỆT ĐƠN " + orderId, "callback_data": "approve_" + orderId + "_" + userId }]]
         }))}`;
         
         fetch(url).then(response => response.json()).then(data => {
             if(data.ok) {
                 showMessage("GỬI YÊU CẦU THÀNH CÔNG!"); 
                 vnd -= amount;
-                // Lưu thêm ID để khi duyệt bot còn biết đơn nào để đổi status
                 history.push({id: orderId, date: new Date().toLocaleDateString(), full: amount.toFixed(0), amount: receivedAmount.toFixed(0), status: "ĐANG CHỜ"});
                 localStorage.setItem('withdrawHistory', JSON.stringify(history));
                 updateUI(); 
