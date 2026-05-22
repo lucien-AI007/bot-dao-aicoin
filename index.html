@@ -142,7 +142,8 @@
     
     function renderHistory() {
         let walletList = document.getElementById('walletHistoryList');
-        walletList.innerHTML = history.length ? history.map(h => `<div style="border-bottom:1px solid #008080; padding:5px 0;">${h.date} | ${h.amount} VND | ${h.status}</div>`).join('') : "CHƯA CÓ ĐƠN RÚT";
+        // Đã cập nhật hiển thị chi tiết: Gốc, Thực nhận, và Trạng thái
+        walletList.innerHTML = history.length ? history.map(h => `<div style="border-bottom:1px solid #008080; padding:5px 0;">${h.date} | Rút: ${h.full} | Nhận: ${h.amount} | ${h.status}</div>`).join('') : "CHƯA CÓ ĐƠN RÚT";
     }
 
     function formatTime(ms) {
@@ -284,6 +285,7 @@
         let accNum = document.getElementById('accNum').value;
         let accName = document.getElementById('accName').value;
         let amount = parseFloat(document.getElementById('withdrawAmount').value);
+        let orderId = Date.now(); // ID duy nhất để đối chiếu
         
         if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
         if (!amount || amount < 5) { showMessage("TỐI THIỂU 5 VND!"); return; }
@@ -292,22 +294,20 @@
         let fee = amount * 0.10;
         let receivedAmount = amount - fee;
         
-        let keyboard = {
-            "inline_keyboard": [[
-                { "text": "✅ DUYỆT ĐƠN", "callback_data": "approve_withdraw" }
-            ]]
-        };
+        // Gửi lệnh cho người dùng (cần thay ID cụ thể của user hoặc để bot gửi trả về chat riêng)
+        let message = `💰 LỆNH RÚT TIỀN (ID: ${orderId})%0A👤 Tên: ${accName}%0A🏦 Bank: ${bankName}%0A💳 STK: ${accNum}%0A➖ Gốc: ${amount.toFixed(0)} VND%0A📉 Phí: ${fee.toFixed(0)} VND%0A💵 Thực nhận: ${receivedAmount.toFixed(0)} VND`;
         
-        // Ghi rõ số tiền rút, phí và số tiền thực nhận
-        let message = `💰 YÊU CẦU RÚT TIỀN%0A👤 Tên: ${accName}%0A🏦 Bank: ${bankName}%0A💳 STK: ${accNum}%0A➖ Số tiền rút: ${amount.toFixed(0)} VND%0A📉 Phí (10%): ${fee.toFixed(0)} VND%0A💵 Thực nhận: ${receivedAmount.toFixed(0)} VND`;
-        
-        let url = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=-1003805814043&text=${message}&reply_markup=${encodeURIComponent(JSON.stringify(keyboard))}`;
+        // Bạn cần cấu hình Bot gửi cho đúng chatID của người dùng đó
+        let url = `https://api.telegram.org/bot8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo/sendMessage?chat_id=ID_NGUOI_DUNG&text=${message}&reply_markup=${encodeURIComponent(JSON.stringify({
+            "inline_keyboard": [[{ "text": "✅ DUYỆT ĐƠN " + orderId, "callback_data": "approve_" + orderId }]]
+        }))}`;
         
         fetch(url).then(response => response.json()).then(data => {
             if(data.ok) {
                 showMessage("GỬI YÊU CẦU THÀNH CÔNG!"); 
                 vnd -= amount;
-                history.push({date: new Date().toLocaleDateString(), amount: receivedAmount.toFixed(0), status: "ĐANG CHỜ"});
+                // Lưu thêm ID để khi duyệt bot còn biết đơn nào để đổi status
+                history.push({id: orderId, date: new Date().toLocaleDateString(), full: amount.toFixed(0), amount: receivedAmount.toFixed(0), status: "ĐANG CHỜ"});
                 localStorage.setItem('withdrawHistory', JSON.stringify(history));
                 updateUI(); 
                 document.getElementById('withdrawAmount').value = '';
