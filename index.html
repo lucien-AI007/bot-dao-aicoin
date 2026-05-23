@@ -266,7 +266,7 @@
         let amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
         let fee = Math.floor(amount * 0.10);
         let received = amount - fee;
-        document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: " + Math.floor(received).toLocaleString() + " VND";
+        document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: " + Math.floor(received).toLocaleString() + " VND";
     }
 
     function lockInputs() {
