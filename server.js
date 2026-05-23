@@ -6,7 +6,14 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true
+}));
+
+// Handle preflight requests
+app.options('*', cors());
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const ADMIN_GROUP_ID = process.env.ADMIN_GROUP_ID;
