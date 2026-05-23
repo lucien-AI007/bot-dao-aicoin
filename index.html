@@ -140,10 +140,10 @@
     const AICOIN_TO_VND_RATE = 10000000;
     const MINING_PER_SECOND = 11.574; // TEST: 50x nhanh hơn
     
-    // 🔥 THAY URL NÀY BẰNG URL CỦA BẠN
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzONqw7pKMmXkBZtix-WDL-CPybq-zBmsnsAbsfz9DQmEZxX70p115ClhW72qyr51SLdA/exec";
-function showMessage(text) {
-        let box = document.getElementById("app-message");
+
+    function showMessage(text) {
+let box = document.getElementById("app-message");
         box.innerText = text.toUpperCase();
         box.style.display = "block";
         setTimeout(() => { box.style.display = "none"; }, 5000);
@@ -154,7 +154,6 @@ function showMessage(text) {
         return tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
     }
 
-    // 📥 TẢI DỮ LIỆU TỪ SERVER
     function loadDataFromServer() {
         let userId = getTelegramUserId();
         if (!userId) {
@@ -175,7 +174,6 @@ function showMessage(text) {
                 }
                 updateUI();
                 
-                // Tính toán mining offline
                 let lastExitTime = localStorage.getItem('lastExitTime');
                 if (lastExitTime) {
                     let offlineTime = (Date.now() - parseInt(lastExitTime)) / 1000;
@@ -193,7 +191,6 @@ function showMessage(text) {
             });
     }
 
-    // 📤 LƯU DỮ LIỆU LÊN SERVER
     function saveDataToServer() {
         let userId = getTelegramUserId();
         if (!userId) return;
@@ -212,13 +209,11 @@ function showMessage(text) {
         }).catch(err => console.log("Lỗi lưu dữ liệu:", err));
     }
 
-    // ⏰ LƯU DỮ LIỆU MỖI 30 GIÂY
     setInterval(() => { saveDataToServer(); }, 30000);
 
-    // 💾 LƯU THỜI GIAN THOÁT APP
     window.onpagehide = () => { 
         localStorage.setItem('lastExitTime', Date.now().toString());
-saveDataToServer(); 
+        saveDataToServer(); 
     };
     window.onblur = () => { 
         localStorage.setItem('lastExitTime', Date.now().toString());
@@ -226,7 +221,7 @@ saveDataToServer();
     };
 
     function formatTime(ms) {
-        let totalSeconds = Math.floor(ms / 1000);
+let totalSeconds = Math.floor(ms / 1000);
         let minutes = Math.floor(totalSeconds / 60);
         let seconds = totalSeconds % 60;
         return (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
@@ -292,13 +287,13 @@ saveDataToServer();
         }
         
         saveDataToServer();
-showMessage("ĐÃ LƯU THÔNG TIN!");
+        showMessage("ĐÃ LƯU THÔNG TIN!");
         lockInputs();
     }
 
     function updateUI() {
         document.getElementById('aicoin').innerText = aicoin.toFixed(5);
-        document.getElementById('hologram-value').innerText = aicoin.toFixed(5); 
+document.getElementById('hologram-value').innerText = aicoin.toFixed(5); 
         document.getElementById('vnd').innerText = Math.floor(vnd).toLocaleString(); 
     }
 
@@ -355,7 +350,7 @@ showMessage("ĐÃ LƯU THÔNG TIN!");
         saveDataToServer();
         showMessage("ĐỔI THÀNH CÔNG!"); 
         document.getElementById('exchangeAmount').value = '';
-        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
+        document.getElementById('exchangeDisplay').innerText = "TỶ LỀ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
         show('wallet', 'nav-wallet');
     }
 
@@ -366,9 +361,8 @@ showMessage("ĐÃ LƯU THÔNG TIN!");
         let amount = parseFloat(document.getElementById('withdrawAmount').value);
         
         let tg = window.Telegram.WebApp;
-let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "UNKNOWN";
-        
-        if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
+        let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "UNKNOWN";
+if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
         if (!amount || amount < MIN_WITHDRAW) { showMessage("TỐI THIỂU 1 VND!"); return; }
         if (amount > vnd) { showMessage("SỐ DƯ KHÔNG ĐỦ!"); return; }
         
@@ -376,24 +370,7 @@ let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.use
         let receivedAmount = amount - fee;
         let orderId = "ORD_" + userId + "_" + Date.now();
         
-        let message = `
-📋 <b>LỆNH RÚT TIỀN MỚI</b>
-
-👤 <b>User ID:</b> <code>${userId}</code>
-📦 <b>Đơn hàng:</b> <code>${orderId}</code>
-
-<b>Thông tin tài khoản:</b>
-🏦 Ngân hàng: <b>${bankName}</b>
-💳 Số TK: <b>${accNum}</b>
-👤 Tên người nhận: <b>${accName}</b>
-
-<b>Chi tiết thanh toán:</b>
-💰 Số tiền rút: <b>${amount.toFixed(0)} VND</b>
-📉 Phí (10%): <b>${fee.toFixed(0)} VND</b>
-✅ Thực nhận: <b>${receivedAmount.toFixed(0)} VND</b>
-
-⏳ <b>Trạng thái:</b> ĐANG CHỜ DUYỆT
-`;
+        let message = `📋 <b>LỆNH RÚT TIỀN MỚI</b>\n\n👤 <b>User ID:</b> <code>${userId}</code>\n📦 <b>Đơn hàng:</b> <code>${orderId}</code>\n\n<b>Thông tin tài khoản:</b>\n🏦 Ngân hàng: <b>${bankName}</b>\n💳 Số TK: <b>${accNum}</b>\n👤 Tên người nhận: <b>${accName}</b>\n\n<b>Chi tiết thanh toán:</b>\n💰 Số tiền rút: <b>${amount.toFixed(0)} VND</b>\n📉 Phí (10%): <b>${fee.toFixed(0)} VND</b>\n✅ Thực nhận: <b>${receivedAmount.toFixed(0)} VND</b>\n\n⏳ <b>Trạng thái:</b> ĐANG CHỜ DUYỆT`;
 
         let keyboard = {
             "inline_keyboard": [
@@ -410,9 +387,21 @@ let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.use
             ]
         };
 
-        let url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_i…ply_markup=${encodeURIComponent(JSON.stringify(keyboard))}`;
-
-        fetch(url).then(response => {
+        let url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                chat_id: ADMIN_GROUP_ID,
+                text: message,
+                parse_mode: 'HTML',
+                reply_markup: keyboard
+            })
+        })
+        .then(response => {
             if(response.ok) {
                 showMessage("✅ GỬI YÊU CẦU THÀNH CÔNG!\nVUI LÒNG CHỜ ADMIN DUYỆT!"); 
                 vnd -= amount;
@@ -423,7 +412,8 @@ let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.use
             } else { 
                 showMessage("❌ LỖI GỬI THÔNG BÁO! VUI LÒNG THỬ LẠI!"); 
             }
-        }).catch(error => { 
+        })
+        .catch(error => { 
             showMessage("❌ LỖI KẾT NỐI! VUI LÒNG KIỂM TRA MẠNG!"); 
             console.error(error);
         });
