@@ -138,21 +138,52 @@
     function calculateOfflineMining(lastTimestamp) { let offlineSeconds = (Date.now() - lastTimestamp) / 1000; return offlineSeconds > 5 ? MINING_PER_SECOND * offlineSeconds : 0; }
     
     function loadDataFromServer() {
-        let userId = getTelegramUserId();
-        if (!userId) { showMessage("⚠️ Lỗi User ID!"); return; }
-        fetch(GAS_URL + "?action=getData&userId=" + userId).then(r => r.json()).then(data => {
+    let userId = getTelegramUserId();
+    if (!userId) { showMessage("⚠️ Lỗi User ID!"); return; }
+    
+    console.log("📥 LOAD DATA từ server cho user:", userId);
+    
+    fetch(GAS_URL + "?action=getData&userId=" + userId)
+        .then(r => r.json())
+        .then(data => {
+            console.log("📥 NHẬN DỮ LIỆU:", data);
+            
             aicoin = parseFloat(data.aicoin) || 0;
             vnd = parseFloat(data.vnd) || 0;
             lastMiningTimestamp = parseInt(data.lastMiningTime) || Date.now();
-            if (data.bankName) { document.getElementById('bankName').value = data.bankName; document.getElementById('accNum').value = data.accNum; document.getElementById('accName').value = data.accName; lockInputs(); }
+            
+            console.log("⏱️ TIMESTAMP TỪ SERVER:", lastMiningTimestamp);
+            
+            if (data.bankName) {
+                document.getElementById('bankName').value = data.bankName;
+                document.getElementById('accNum').value = data.accNum;
+                document.getElementById('accName').value = data.accName;
+                lockInputs();
+            }
+            
+            // ⭐ TÍNH OFFLINE MINING NGAY
             let offlineEarned = calculateOfflineMining(lastMiningTimestamp);
-            if (offlineEarned > 0) { aicoin += offlineEarned; showMessage("✅ +" + Math.floor(offlineEarned).toLocaleString() + " OFFLINE!"); }
+            console.log("💰 OFFLINE MINING EARNED:", offlineEarned);
+            
+            if (offlineEarned > 0) {
+                aicoin += offlineEarned;
+                showMessage("✅ NHẬN " + Math.floor(offlineEarned).toLocaleString() + " AICOIN TỪ OFFLINE!");
+                console.log("✅ TỔNG AICOIN AFTER OFFLINE:", aicoin);
+            }
+            
+            // ⭐ CẬP NHẬT TIMESTAMP NGAY TRONG LUC
             lastMiningTimestamp = Date.now();
+            console.log("⏱️ TIMESTAMP MỚI:", lastMiningTimestamp);
+            
             updateUI();
-            saveDataToServer();
-        }).catch(err => { showMessage("Lỗi kết nối!"); lastMiningTimestamp = parseInt(localStorage.getItem('lastMiningTime')) || Date.now(); });
-    }
-
+            saveDataToServer(); // ⭐ LƯU NGAY
+        })
+        .catch(err => {
+            console.log("❌ LỖI LOAD:", err);
+            showMessage("Lỗi kết nối server!");
+            lastMiningTimestamp = parseInt(localStorage.getItem('lastMiningTime')) || Date.now();
+        });
+}
     function saveDataToServer() {
     let userId = getTelegramUserId();
     if (!userId) return;
