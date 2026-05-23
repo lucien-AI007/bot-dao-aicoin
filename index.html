@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI MINING APP - TEST</title>
+    <title>AI MINING APP</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='11017925' data-sdk='show_11017925'></script>
     <style>
@@ -81,7 +81,7 @@
     <hr style="border: 0; border-top: 1px solid #008080; margin: 15px 0;">
     <h2 class="section-title">RÚT TIỀN</h2>
     <input type="number" id="withdrawAmount" placeholder="SỐ TIỀN (VND)" oninput="calculateWithdrawFee()">
-    <div style="font-size: 12px; color: #ff6666; margin: 10px 0;">TỐI THIỂU: 1 VND | PHÍ: 10% | <span id="withdrawReceived">NHẬN: 0</span> VND</div>
+    <div style="font-size: 12px; color: #ff6666; margin: 10px 0;">TỐI THIỂU: 1.000 VND | PHÍ: 10% | <span id="withdrawReceived">NHẬN: 0</span> VND</div>
     <button class="btn btn-withdraw" id="withdrawBtn" onclick="withdraw()">RÚT TIỀN</button>
     <button class="btn btn-exchange" onclick="show('exchange-page')">ĐỔI AICOIN</button>
 </div>
@@ -101,7 +101,7 @@
         ✅ <b>Quảng cáo</b> 30.000 AICOIN/15 phút<br>
         ✅ <b>Điểm danh</b> 20.000 AICOIN/ngày<br>
         ✅ <b>Offline</b> vẫn đào liên tục<br>
-        ⚠️ <b>TEST:</b> Min rút 1 VND
+        ✅ <b>Rút tiền</b> min 1.000 VND, phí 10%
     </p>
 </div>
 
@@ -116,27 +116,24 @@
 <script>
     let aicoin = 0;
     let vnd = 0;
-    let lastSaveTime = Date.now();
     let lastMiningTime = Date.now();
 
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
-    const MIN_WITHDRAW = 1;
+    const MIN_WITHDRAW = 1000; // CHÍNH: min 1.000 VND
     const AICOIN_TO_VND_RATE = 10000000;
     const MINING_PER_SECOND = 0.231;
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzaWKD_ouTdwIes_fnLnjrv9Z-tZwE289lni_oSRQbcjbLUel16RwcHG3orAZ5Qyvt5/exec";
 
-    // ===== CORE FUNCTIONS =====
     function getTelegramUserId() {
         let tg = window.Telegram.WebApp;
-        return tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "test_123";
+        return tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "unknown_user";
     }
 
     function getStorageKey() {
         return "aimine_" + getTelegramUserId();
     }
 
-    // ===== SAVE LOCAL DATA (CRITICAL) =====
     function saveLocal() {
         let key = getStorageKey();
         let data = {
@@ -149,10 +146,8 @@
             savedAt: Date.now()
         };
         localStorage.setItem(key, JSON.stringify(data));
-        console.log("💾 Lưu local:", data);
     }
 
-    // ===== LOAD LOCAL DATA =====
     function loadLocal() {
         let key = getStorageKey();
         let saved = localStorage.getItem(key);
@@ -164,13 +159,11 @@
                 vnd = parseFloat(data.vnd) || 0;
                 lastMiningTime = data.lastMiningTime || Date.now();
                 
-                // FIX: Tính mining offline
                 let offlineSeconds = (Date.now() - lastMiningTime) / 1000;
                 if (offlineSeconds > 1 && offlineSeconds < 86400) {
                     let offlineMined = MINING_PER_SECOND * offlineSeconds;
                     aicoin += offlineMined;
                     showMessage("✅ NHẬN " + Math.floor(offlineMined).toLocaleString() + " AICOIN OFFLINE!");
-                    console.log("⛏️ Offline mining: " + offlineSeconds.toFixed(1) + "s => " + offlineMined.toFixed(5) + " AICOIN");
                 }
                 
                 document.getElementById('bankName').value = data.bankName || "";
@@ -186,37 +179,31 @@
                 }
                 
                 updateUI();
-                console.log("✅ Load local thành công: AICOIN=" + aicoin.toFixed(5) + ", VND=" + vnd);
             } catch(e) {
-                console.error("❌ Lỗi load local:", e);
+                console.error("Lỗi load local:", e);
             }
         }
         
         lastMiningTime = Date.now();
     }
 
-    // ===== AUTO SAVE INTERVAL =====
     setInterval(() => {
         saveLocal();
         syncToServer();
-    }, 10000); // Lưu mỗi 10 giây
+    }, 10000);
 
-    // ===== PAGE EVENTS =====
     window.addEventListener('beforeunload', () => {
         lastMiningTime = Date.now();
         saveLocal();
-        console.log("📤 Page unload - lưu dữ liệu");
     });
 
     window.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             lastMiningTime = Date.now();
             saveLocal();
-            console.log("🔌 App hidden - lưu offline time");
         }
     });
 
-    // ===== SYNC TO SERVER =====
     function syncToServer() {
         let userId = getTelegramUserId();
         fetch(GAS_URL, {
@@ -230,10 +217,9 @@
                 accNum: document.getElementById('accNum').value,
                 accName: document.getElementById('accName').value
             })
-        }).catch(err => console.log("⚠️ Sync server lỗi:", err));
+        }).catch(err => console.log("Sync lỗi:", err));
     }
 
-    // ===== UI FUNCTIONS =====
     function showMessage(text) {
         let box = document.getElementById("app-message");
         box.textContent = text;
@@ -259,13 +245,11 @@
         }
     }
 
-    // ===== MINING LOOP =====
     setInterval(() => {
         aicoin += MINING_PER_SECOND;
         updateUI();
     }, 1000);
 
-    // ===== WALLET FUNCTIONS =====
     function calculateWithdrawFee() {
         let amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
         let fee = Math.floor(amount * 0.1);
@@ -385,7 +369,7 @@
             return;
         }
         if (!amount || amount < MIN_WITHDRAW) {
-            showMessage("TỐI THIỂU 1 VND");
+            showMessage("TỐI THIỂU 1.000 VND");
             return;
         }
         if (amount > vnd) {
@@ -452,10 +436,8 @@
         showMessage("ĐÃ SAO CHÉP");
     }
 
-    // ===== INIT =====
     window.addEventListener('load', () => {
         loadLocal();
-        console.log("🚀 App initialized");
     });
 </script>
 </body>
