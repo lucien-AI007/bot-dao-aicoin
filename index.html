@@ -100,7 +100,6 @@
         ✅ <b>Đào coin</b> tự động vĩnh viễn<br>
         ✅ <b>Quảng cáo</b> 30.000 AICOIN/15 phút<br>
         ✅ <b>Điểm danh</b> 20.000 AICOIN/ngày<br>
-        ✅ <b>Offline</b> vẫn đào liên tục<br>
         ✅ <b>Rút tiền</b> min 1 VND, phí 10%
     </p>
 </div>
@@ -117,10 +116,17 @@
     let aicoin = 0;
     let vnd = 0;
     let lastMiningTime = Date.now();
+    let deviceId = localStorage.getItem('deviceId');
+    
+    // Tạo deviceId duy nhất cho mỗi thiết bị
+    if (!deviceId) {
+        deviceId = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('deviceId', deviceId);
+    }
 
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
-    const MIN_WITHDRAW = 1; // CHÍNH: min 1 VND
+    const MIN_WITHDRAW = 1;
     const AICOIN_TO_VND_RATE = 10000000;
     const MINING_PER_SECOND = 0.231;
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzaWKD_ouTdwIes_fnLnjrv9Z-tZwE289lni_oSRQbcjbLUel16RwcHG3orAZ5Qyvt5/exec";
@@ -131,7 +137,8 @@
     }
 
     function getStorageKey() {
-        return "aimine_" + getTelegramUserId();
+        // Key riêng per device
+        return "aimine_" + getTelegramUserId() + "_" + deviceId;
     }
 
     function saveLocal() {
@@ -211,6 +218,7 @@
             body: JSON.stringify({
                 action: "saveData",
                 userId: userId,
+                deviceId: deviceId,
                 aicoin: aicoin,
                 vnd: vnd,
                 bankName: document.getElementById('bankName').value,
@@ -319,7 +327,7 @@
 
     function checkIn() {
         let today = new Date().toISOString().split('T')[0];
-        let key = "checkin_" + getTelegramUserId();
+        let key = "checkin_" + getTelegramUserId() + "_" + deviceId;
         
         if (localStorage.getItem(key) === today) {
             showMessage("ĐÃ ĐIỂM DANH HÔM NAY");
@@ -342,7 +350,7 @@
         
         show_11017925().then(() => {
             let userId = getTelegramUserId();
-            let key = "ad_" + userId;
+            let key = "ad_" + userId + "_" + deviceId;
             
             aicoin += 30000;
             localStorage.setItem(key, Date.now());
