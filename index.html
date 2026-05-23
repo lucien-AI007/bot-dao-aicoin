@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI MINING APP - TEST</title>
+    <title>AI MINING APP</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='11017925' data-sdk='show_11017925'></script>
     <style>
@@ -39,13 +39,16 @@
         input { width: 90%; padding: 16px; margin: 10px 0; border-radius: 10px; border: 1px solid #006666; background: #002626; color: white; text-align: center; font-size: 15px; }
         input:disabled { background: #001a1a; color: #888; border-color: #333; }
         #refLink { text-transform: none; }
-        .test-badge { background: #ff6666; padding: 3px 8px; border-radius: 5px; font-size: 11px; margin-left: 10px; }
+        .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; }
+        .status-pending { background: #ffa500; }
+        .status-approved { background: #00ff00; }
+        .status-rejected { background: #ff0000; }
     </style>
 </head>
 <body>
 <div class="header">
     <div class="user-info">
-        <div class="username">MINE AICOIN <span class="test-badge">TEST</span></div>
+        <div class="username">MINE AICOIN</div>
     </div>
     <div class="status-badge">
         <div class="pulse"></div> ĐANG ĐÀO
@@ -94,16 +97,20 @@
     </div>
     <hr style="border: 0; border-top: 1px solid #008080; margin: 25px 0;">
     <h2 class="section-title">RÚT TIỀN</h2>
-    <input type="number" id="withdrawAmount" placeholder="SỐ TIỀN MUỐN RÚT (VND) - TỐI THIỂU 1 VND" oninput="calculateWithdrawFee()">
-    <div id="feeDisplay" class="fee-info">TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: 0 VND</div>
+    <input type="number" id="withdrawAmount" placeholder="SỐ TIỀN MUỐN RÚT (VND)" oninput="calculateWithdrawFee()">
+    <div id="feeDisplay" class="fee-info">TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: 0 VND</div>
     <button class="btn btn-withdraw" id="withdrawBtn" onclick="withdraw()">XÁC NHẬN RÚT TIỀN</button>
     <button class="btn btn-exchange" onclick="show('exchange-page', 'nav-wallet')">ĐỔI AICOIN SANG VND</button>
+    <!-- ✅ NÂNG CẤP: Hiển thị trạng thái rút tiền -->
+    <div id="withdrawStatus" style="display: none; margin-top: 15px; padding: 15px; background: rgba(0, 255, 255, 0.05); border: 1px solid #40E0D0; border-radius: 8px;">
+        <p style="margin: 5px 0;"><span class="status-indicator status-pending"></span><span id="statusText">ĐANG CHỜ DUYỆT...</span></p>
+    </div>
 </div>
 
 <div id="exchange-page" class="section">
     <h2 class="section-title">QUY ĐỔI</h2>
     <input type="number" id="exchangeAmount" placeholder="NHẬP SỐ AICOIN" oninput="calculateExchange()">
-    <div id="exchangeDisplay" class="info-msg">TỶ LỀ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND</div>
+    <div id="exchangeDisplay" class="info-msg">TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND</div>
     <button class="btn btn-exchange" onclick="confirmExchange()">XÁC NHẬN ĐỔI</button>
     <button class="btn" style="background: #333;" onclick="show('wallet', 'nav-wallet')">QUAY LẠI VÍ</button>
 </div>
@@ -113,7 +120,6 @@
     <div class="info-box">
         <p><strong>1. CƠ CHẾ ĐÀO:</strong> ĐÀO COIN TỰ ĐỘNG VĨNH VIỄN.</p>
         <p><strong>2. PHẦN THƯỞNG:</strong> XEM QUẢNG CÁO ĐỂ NHẬN THƯỞNG MỖI 15 PHÚT.</p>
-        <p><strong style="color: #ff6666;">⚠️ ĐÂY LÀ BẢN TEST - TỐI THIỂU RÚT CHỈ 1 VND</strong></p>
     </div>
 </div>
 
@@ -128,10 +134,11 @@
 <script>
     let aicoin = 0;
     let vnd = 0;
+    let currentWithdrawCheckInterval = null;
 
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
-    const MIN_WITHDRAW = 1;
+    const MIN_WITHDRAW = 1000;
     const AICOIN_TO_VND_RATE = 10000000;
     const MINING_PER_SECOND = 0.231;
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzaWKD_ouTdwIes_fnLnjrv9Z-tZwE289lni_oSRQbcjbLUel16RwcHG3orAZ5Qyvt5/exec";
@@ -252,14 +259,14 @@
     function calculateExchange() {
         let amount = parseFloat(document.getElementById('exchangeAmount').value) || 0;
         let vndEarned = amount / AICOIN_TO_VND_RATE;
-        document.getElementById('exchangeDisplay').innerText = "TỶ LỀ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: " + Math.floor(vndEarned * 1000).toLocaleString() + " VND";
+        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: " + Math.floor(vndEarned * 1000).toLocaleString() + " VND";
     }
 
     function calculateWithdrawFee() {
         let amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
         let fee = Math.floor(amount * 0.10);
         let received = amount - fee;
-        document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: " + Math.floor(received).toLocaleString() + " VND";
+        document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: " + Math.floor(received).toLocaleString() + " VND";
     }
 
     function lockInputs() {
@@ -350,8 +357,62 @@
         saveDataToServer();
         showMessage("ĐỔI THÀNH CÔNG!"); 
         document.getElementById('exchangeAmount').value = '';
-        document.getElementById('exchangeDisplay').innerText = "TỶ LỀ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
+        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
         show('wallet', 'nav-wallet');
+    }
+
+    // ✅ NÂNG CẤP: Kiểm tra trạng thái rút tiền mỗi 3 giây
+    function startCheckingWithdrawStatus() {
+        let userId = getTelegramUserId();
+        if (!userId) return;
+
+        // Dừng check cũ nếu có
+        if (currentWithdrawCheckInterval) {
+            clearInterval(currentWithdrawCheckInterval);
+        }
+
+        // Hiển thị trạng thái
+        document.getElementById('withdrawStatus').style.display = 'block';
+        let statusIndicator = document.querySelector('.status-indicator');
+        let statusText = document.getElementById('statusText');
+
+        currentWithdrawCheckInterval = setInterval(() => {
+            fetch(GAS_URL + "?action=checkWithdrawStatus&userId=" + userId)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === "approved") {
+                        statusIndicator.className = "status-indicator status-approved";
+                        statusText.innerText = "✅ ĐƠN ĐÃ ĐƯỢC DUYỆT! SẮP NHẬN TIỀN!";
+                        showMessage("✅ ĐƠN RÚT TIỀN ĐÃ ĐƯỢC DUYỆT!\n💰 SẮP NHẬN TIỀN!");
+                        clearInterval(currentWithdrawCheckInterval);
+                        // Ẩn sau 10 giây
+                        setTimeout(() => {
+                            document.getElementById('withdrawStatus').style.display = 'none';
+                        }, 10000);
+                    } else if (data.status === "rejected") {
+                        statusIndicator.className = "status-indicator status-rejected";
+                        statusText.innerText = "❌ ĐƠN BỊ TỪ CHỐI - LIÊN HỆ ADMIN";
+                        showMessage("❌ ĐƠN BỊ TỪ CHỐI!\n📞 LIÊN HỆ ADMIN");
+                        clearInterval(currentWithdrawCheckInterval);
+                        // Ẩn sau 10 giây
+                        setTimeout(() => {
+                            document.getElementById('withdrawStatus').style.display = 'none';
+                        }, 10000);
+                    } else {
+                        statusIndicator.className = "status-indicator status-pending";
+                        statusText.innerText = "⏳ ĐANG CHỜ ADMIN DUYỆT...";
+                    }
+                })
+                .catch(err => console.log("Lỗi kiểm tra:", err));
+        }, 3000);
+
+        // Dừng kiểm tra sau 30 phút
+        setTimeout(() => {
+            if (currentWithdrawCheckInterval) {
+                clearInterval(currentWithdrawCheckInterval);
+                document.getElementById('withdrawStatus').style.display = 'none';
+            }
+        }, 30 * 60 * 1000);
     }
 
     function withdraw() {
@@ -364,7 +425,7 @@
         let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "UNKNOWN";
 
         if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
-        if (!amount || amount < MIN_WITHDRAW) { showMessage("TỐI THIỂU 1 VND!"); return; }
+        if (!amount || amount < MIN_WITHDRAW) { showMessage("TỐI THIỂU 1.000 VND!"); return; }
         if (amount > vnd) { showMessage("SỐ DƯ KHÔNG ĐỦ!"); return; }
 
         withdrawBtn.disabled = true;
@@ -374,7 +435,7 @@
         let receivedAmount = amount - fee;
         let orderId = "ORD_" + userId + "_" + Date.now();
 
-        let message = `📋 <b>LỆNH RÚT TIỀN MỚI (TEST)</b>\n\n👤 <b>User ID:</b> <code>${userId}</code>\n📦 <b>Đơn hàng:</b> <code>${orderId}</code>\n\n<b>Thông tin tài khoản:</b>\n🏦 Ngân hàng: <b>${bankName}</b>\n💳 Số TK: <b>${accNum}</b>\n👤 Tên người nhận: <b>${accName}</b>\n\n<b>Chi tiết thanh toán:</b>\n💰 Số tiền rút: <b>${amount.toFixed(0)} VND</b>\n📉 Phí (10%): <b>${fee.toFixed(0)} VND</b>\n✅ Thực nhận: <b>${receivedAmount.toFixed(0)} VND</b>\n\n⏳ <b>Trạng thái:</b> ĐANG CHỜ DUYỆT\n<b>⚠️ ĐÂY LÀ BẢN TEST</b>`;
+        let message = `📋 <b>LỆNH RÚT TIỀN MỚI</b>\n\n👤 <b>User ID:</b> <code>${userId}</code>\n📦 <b>Đơn hàng:</b> <code>${orderId}</code>\n\n<b>Thông tin tài khoản:</b>\n🏦 Ngân hàng: <b>${bankName}</b>\n💳 Số TK: <b>${accNum}</b>\n👤 Tên người nhận: <b>${accName}</b>\n\n<b>Chi tiết thanh toán:</b>\n💰 Số tiền rút: <b>${amount.toFixed(0)} VND</b>\n📉 Phí (10%): <b>${fee.toFixed(0)} VND</b>\n✅ Thực nhận: <b>${receivedAmount.toFixed(0)} VND</b>\n\n⏳ <b>Trạng thái:</b> ĐANG CHỜ DUYỆT`;
 
         let keyboard = {
             "inline_keyboard": [
@@ -405,7 +466,11 @@
                 updateUI();
                 saveDataToServer();
                 document.getElementById('withdrawAmount').value = '';
-                document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
+                document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
+                
+                // ✅ NÂNG CẤP: Bắt đầu kiểm tra trạng thái
+                startCheckingWithdrawStatus();
+                
                 setTimeout(() => {
                     withdrawBtn.disabled = false;
                     withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
