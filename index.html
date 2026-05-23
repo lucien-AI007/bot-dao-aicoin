@@ -81,7 +81,7 @@
     <hr style="border: 0; border-top: 1px solid #008080; margin: 15px 0;">
     <h2 class="section-title">RÚT TIỀN</h2>
     <input type="number" id="withdrawAmount" placeholder="SỐ TIỀN (VND)" oninput="calculateWithdrawFee()">
-    <div style="font-size: 12px; color: #ff6666; margin: 10px 0;">TỐI THIỂU: 1.000 VND | PHÍ: 10% | <span id="withdrawReceived">NHẬN: 0</span> VND</div>
+    <div style="font-size: 12px; color: #ff6666; margin: 10px 0;">TỐI THIỂU: 1 VND | PHÍ: 10% | <span id="withdrawReceived">NHẬN: 0</span> VND</div>
     <button class="btn btn-withdraw" id="withdrawBtn" onclick="withdraw()">RÚT TIỀN</button>
     <button class="btn btn-exchange" onclick="show('exchange-page')">ĐỔI AICOIN</button>
 </div>
@@ -101,7 +101,7 @@
         ✅ <b>Quảng cáo</b> 30.000 AICOIN/15 phút<br>
         ✅ <b>Điểm danh</b> 20.000 AICOIN/ngày<br>
         ✅ <b>Offline</b> vẫn đào liên tục<br>
-        ✅ <b>Rút tiền</b> min 1.000 VND, phí 10%
+        ✅ <b>Rút tiền</b> min 1 VND, phí 10%
     </p>
 </div>
 
@@ -120,7 +120,7 @@
 
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
-    const MIN_WITHDRAW = 1000; // CHÍNH: min 1.000 VND
+    const MIN_WITHDRAW = 1; // CHÍNH: min 1 VND
     const AICOIN_TO_VND_RATE = 10000000;
     const MINING_PER_SECOND = 0.231;
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzaWKD_ouTdwIes_fnLnjrv9Z-tZwE289lni_oSRQbcjbLUel16RwcHG3orAZ5Qyvt5/exec";
@@ -369,7 +369,7 @@
             return;
         }
         if (!amount || amount < MIN_WITHDRAW) {
-            showMessage("TỐI THIỂU 1.000 VND");
+            showMessage("TỐI THIỂU 1 VND");
             return;
         }
         if (amount > vnd) {
