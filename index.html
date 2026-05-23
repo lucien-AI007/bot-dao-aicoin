@@ -31,9 +31,10 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; color: #b3b3b3; font-size: 12px; }
         .nav-item span:first-child { font-size: 26px; margin-bottom: 4px; }
         .nav-item.active { color: #40E0D0; }
-.hologram { width: 180px; height: 180px; border-radius: 50%; border: 4px solid #40E0D0; box-shadow: 0 0 30px #40E0D0; margin: 40px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .hologram { width: 180px; height: 180px; border-radius: 50%; border: 4px solid #40E0D0; box-shadow: 0 0 30px #40E0D0; margin: 40px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .btn { background: #1a1a1a; color: white; padding: 18px 20px; border: 1px solid #333; border-radius: 10px; cursor: pointer; margin: 8px 0; width: 100%; font-weight: bold; font-size: 16px; }
         .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-withdraw { background: #1b5e20; border-color: #2e7d32; }
         .btn-exchange { background: #856404; border-color: #b8860b; }
         .btn-edit { background: #444; border-color: #666; }
@@ -92,7 +93,7 @@
     <input type="text" id="bankName" placeholder="TÊN NGÂN HÀNG">
     <input type="text" id="accNum" placeholder="SỐ TÀI KHOẢN">
     <input type="text" id="accName" placeholder="TÊN NGƯỜI NHẬN">
-<div id="wallet-controls">
+    <div id="wallet-controls">
         <button id="saveBtn" class="btn" onclick="saveBank()">LƯU THÔNG TIN</button>
         <button id="editBtn" class="btn btn-edit" onclick="editBank()" style="display:none;">CHỈNH SỬA</button>
     </div>
@@ -100,7 +101,7 @@
     <h2 class="section-title">RÚT TIỀN</h2>
     <input type="number" id="withdrawAmount" placeholder="SỐ TIỀN MUỐN RÚT (VND)" oninput="calculateWithdrawFee()">
     <div id="feeDisplay" class="fee-info">TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: 0 VND</div>
-    <button class="btn btn-withdraw" onclick="withdraw()">XÁC NHẬN RÚT TIỀN</button>
+    <button class="btn btn-withdraw" id="withdrawBtn" onclick="withdraw()">XÁC NHẬN RÚT TIỀN</button>
     <button class="btn btn-exchange" onclick="show('exchange-page', 'nav-wallet')">ĐỔI AICOIN SANG VND</button>
 </div>
 
@@ -136,14 +137,14 @@
 
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
-    const MIN_WITHDRAW = 1; // TEST: 1 VND
+    const MIN_WITHDRAW = 1;
     const AICOIN_TO_VND_RATE = 10000000;
-    const MINING_PER_SECOND = 11.574; // TEST: 50x nhanh hơn
+    const MINING_PER_SECOND = 11.574;
     
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzONqw7pKMmXkBZtix-WDL-CPybq-zBmsnsAbsfz9DQmEZxX70p115ClhW72qyr51SLdA/exec";
 
     function showMessage(text) {
-let box = document.getElementById("app-message");
+        let box = document.getElementById("app-message");
         box.innerText = text.toUpperCase();
         box.style.display = "block";
         setTimeout(() => { box.style.display = "none"; }, 5000);
@@ -221,7 +222,7 @@ let box = document.getElementById("app-message");
     };
 
     function formatTime(ms) {
-let totalSeconds = Math.floor(ms / 1000);
+        let totalSeconds = Math.floor(ms / 1000);
         let minutes = Math.floor(totalSeconds / 60);
         let seconds = totalSeconds % 60;
         return (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
@@ -293,7 +294,7 @@ let totalSeconds = Math.floor(ms / 1000);
 
     function updateUI() {
         document.getElementById('aicoin').innerText = aicoin.toFixed(5);
-document.getElementById('hologram-value').innerText = aicoin.toFixed(5); 
+        document.getElementById('hologram-value').innerText = aicoin.toFixed(5); 
         document.getElementById('vnd').innerText = Math.floor(vnd).toLocaleString(); 
     }
 
@@ -327,7 +328,7 @@ document.getElementById('hologram-value').innerText = aicoin.toFixed(5);
     function watchAd() {
         if (typeof show_11017925 === 'function') {
             show_11017925().then(() => {
-                let reward = (Math.random() < 0.9) ? 1500000 : 1800000; // TEST: 1.5M-1.8M
+                let reward = 1500000;
                 aicoin += reward; 
                 localStorage.setItem('lastAdTime', Date.now());
                 updateUI();
@@ -350,7 +351,7 @@ document.getElementById('hologram-value').innerText = aicoin.toFixed(5);
         saveDataToServer();
         showMessage("ĐỔI THÀNH CÔNG!"); 
         document.getElementById('exchangeAmount').value = '';
-        document.getElementById('exchangeDisplay').innerText = "TỶ LỀ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
+        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
         show('wallet', 'nav-wallet');
     }
 
@@ -359,12 +360,18 @@ document.getElementById('hologram-value').innerText = aicoin.toFixed(5);
         let accNum = document.getElementById('accNum').value;
         let accName = document.getElementById('accName').value;
         let amount = parseFloat(document.getElementById('withdrawAmount').value);
+        let withdrawBtn = document.getElementById('withdrawBtn');
         
         let tg = window.Telegram.WebApp;
         let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "UNKNOWN";
-if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
+        
+        if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
         if (!amount || amount < MIN_WITHDRAW) { showMessage("TỐI THIỂU 1 VND!"); return; }
         if (amount > vnd) { showMessage("SỐ DƯ KHÔNG ĐỦ!"); return; }
+        
+        // 🔒 DISABLE NÚT NGAY LẬP TỨC ĐỂ TRÁNH SPAM
+        withdrawBtn.disabled = true;
+        withdrawBtn.innerText = "ĐANG GỬI...";
         
         let fee = Math.floor(amount * 0.10);
         let receivedAmount = amount - fee;
@@ -377,11 +384,11 @@ if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN
                 [
                     { 
                         "text": "✅ DUYỆT ĐƠN", 
-                        "callback_data": "approve_" + userId + "_" + Math.floor(receivedAmount)
+                        "callback_data": "approve_" + userId + "_" + orderId + "_" + Math.floor(receivedAmount) + "_" + accName
                     },
                     { 
                         "text": "❌ TỪ CHỐI", 
-                        "callback_data": "reject_" + userId
+                        "callback_data": "reject_" + userId + "_" + orderId
                     }
                 ]
             ]
@@ -401,22 +408,51 @@ if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN
                 reply_markup: keyboard
             })
         })
-        .then(response => {
-            if(response.ok) {
+        .then(response => response.json())
+        .then(data => {
+            if(data.ok) {
+                // 💾 LƯU MESSAGE_ID VÀO SHEET ĐỂ EDIT SAU
+                saveWithdrawRequest(userId, orderId, data.result.message_id, "pending", accName);
+                
                 showMessage("✅ GỬI YÊU CẦU THÀNH CÔNG!\nVUI LÒNG CHỜ ADMIN DUYỆT!"); 
                 vnd -= amount;
                 updateUI();
                 saveDataToServer();
                 document.getElementById('withdrawAmount').value = '';
                 document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
+                
+                // Khôi phục nút sau 3 giây
+                setTimeout(() => {
+                    withdrawBtn.disabled = false;
+                    withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
+                }, 3000);
             } else { 
                 showMessage("❌ LỖI GỬI THÔNG BÁO! VUI LÒNG THỬ LẠI!"); 
+                withdrawBtn.disabled = false;
+                withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
             }
         })
         .catch(error => { 
             showMessage("❌ LỖI KẾT NỐI! VUI LÒNG KIỂM TRA MẠNG!"); 
             console.error(error);
+            withdrawBtn.disabled = false;
+            withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
         });
+    }
+
+    function saveWithdrawRequest(userId, orderId, messageId, status, accName) {
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "saveWithdraw",
+                userId: userId,
+                orderId: orderId,
+                messageId: messageId,
+                status: status,
+                accName: accName,
+                timestamp: Date.now()
+            })
+        }).catch(err => console.log("Lỗi lưu request:", err));
     }
 
     function copyLink() { 
