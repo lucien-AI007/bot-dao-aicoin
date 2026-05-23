@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI MINING APP</title>
+    <title>AI MINING APP - TEST</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='11017925' data-sdk='show_11017925'></script>
     
@@ -17,6 +17,7 @@
         .user-info { display: flex; align-items: center; gap: 15px; }
         .username { font-weight: 900; font-size: 18px; letter-spacing: 1px; }
         .status-badge { background: #004d4d; border: 1px solid #40E0D0; padding: 8px 15px; border-radius: 20px; font-size: 12px; color: #40E0D0; display: flex; align-items: center; gap: 5px; }
+        .test-badge { background: #ff6600; border: 1px solid #ffaa00; padding: 8px 15px; border-radius: 20px; font-size: 12px; color: white; font-weight: bold; margin-left: 10px; }
         .pulse { width: 10px; height: 10px; background: #40E0D0; border-radius: 50%; animation: blink 1s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         .balance-row { display: flex; gap: 10px; margin: 25px auto; width: 95%; }
@@ -47,8 +48,11 @@
     <div class="user-info">
         <div class="username">MINE AICOIN</div>
     </div>
-    <div class="status-badge">
-        <div class="pulse"></div> ĐANG ĐÀO
+    <div style="display: flex; gap: 10px;">
+        <div class="status-badge">
+            <div class="pulse"></div> ĐANG ĐÀO
+        </div>
+        <div class="test-badge">🧪 TEST</div>
     </div>
 </div>
 
@@ -88,14 +92,14 @@
     <input type="text" id="bankName" placeholder="TÊN NGÂN HÀNG">
     <input type="text" id="accNum" placeholder="SỐ TÀI KHOẢN">
     <input type="text" id="accName" placeholder="TÊN NGƯỜI NHẬN">
-    <div id="wallet-controls">
-<button id="saveBtn" class="btn" onclick="saveBank()">LƯU THÔNG TIN</button>
-<button id="editBtn" class="btn btn-edit" onclick="editBank()" style="display:none;">CHỈNH SỬA</button>
+<div id="wallet-controls">
+        <button id="saveBtn" class="btn" onclick="saveBank()">LƯU THÔNG TIN</button>
+        <button id="editBtn" class="btn btn-edit" onclick="editBank()" style="display:none;">CHỈNH SỬA</button>
     </div>
     <hr style="border: 0; border-top: 1px solid #008080; margin: 25px 0;">
     <h2 class="section-title">RÚT TIỀN</h2>
     <input type="number" id="withdrawAmount" placeholder="SỐ TIỀN MUỐN RÚT (VND)" oninput="calculateWithdrawFee()">
-    <div id="feeDisplay" class="fee-info">TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: 0 VND</div>
+    <div id="feeDisplay" class="fee-info">TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: 0 VND</div>
     <button class="btn btn-withdraw" onclick="withdraw()">XÁC NHẬN RÚT TIỀN</button>
     <button class="btn btn-exchange" onclick="show('exchange-page', 'nav-wallet')">ĐỔI AICOIN SANG VND</button>
 </div>
@@ -111,8 +115,10 @@
 <div id="info" class="section">
     <h2 class="section-title">THÔNG TIN</h2>
     <div class="info-box">
-        <p><strong>1. CƠ CHẾ ĐÀO:</strong> ĐÀO COIN TỰ ĐỘNG VĨNH VIỄN.</p>
-        <p><strong>2. PHẦN THƯỞNG:</strong> XEM QUẢNG CÁO ĐỂ NHẬN THƯỞNG MỖI 15 PHÚT.</p>
+        <p><strong>⚠️ ĐÂY LÀ BẢN TEST - CHỈ DỰ DÙNG ĐỂ KIỂM TRA</strong></p>
+        <p><strong>1. CƠ CHẾ ĐÀO:</strong> ĐÀO COIN TỰ ĐỘNG VĨNH VIỄN (NHANH 50x để test).</p>
+        <p><strong>2. PHẦN THƯỞNG:</strong> XEM QUẢNG CÁO ĐỂ NHẬN THƯỞNG MỖI 15 PHÚT (CAO 50x để test).</p>
+        <p><strong>3. RÚT TIỀN:</strong> MINIMUM 1 VND (CẤP TỐC TEST).</p>
     </div>
 </div>
 
@@ -130,18 +136,16 @@
 
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
-    const MIN_WITHDRAW = 1000;
-    const MIN_EXCHANGE = 0; // Không giới hạn đổi
-    const AICOIN_TO_VND_RATE = 10000000; // 10 triệu coin = 1000 VND
-    const MINING_PER_SECOND = 0.231; // ~200VND/ngày (tính từ xem ads + mining)
+    const MIN_WITHDRAW = 1; // TEST: 1 VND
+    const AICOIN_TO_VND_RATE = 10000000;
+    const MINING_PER_SECOND = 11.574; // TEST: 50x nhanh hơn
     
     // 🔥 THAY URL NÀY BẰNG URL CỦA BẠN
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzONqw7pKMmXkBZtix-WDL-CPybq-zBmsnsAbsfz9DQmEZxX70p115ClhW72qyr51SLdA/exec";
-
-    function showMessage(text) {
+function showMessage(text) {
         let box = document.getElementById("app-message");
         box.innerText = text.toUpperCase();
-box.style.display = "block";
+        box.style.display = "block";
         setTimeout(() => { box.style.display = "none"; }, 5000);
     }
 
@@ -163,16 +167,6 @@ box.style.display = "block";
             .then(data => {
                 aicoin = parseFloat(data.aicoin) || 0;
                 vnd = parseFloat(data.vnd) || 0;
-                
-                // ⏰ TÍNH TOÁN MINING OFFLINE
-                let lastExitTime = localStorage.getItem('lastExitTime');
-                if (lastExitTime) {
-                    let offlineTime = (Date.now() - parseInt(lastExitTime)) / 1000;
-                    let earnedOffline = MINING_PER_SECOND * offlineTime;
-                    aicoin += earnedOffline;
-                    console.log("✅ Đã thêm offline mining: " + earnedOffline.toFixed(5) + " AICOIN");
-                }
-                
                 if (data.bankName) {
                     document.getElementById('bankName').value = data.bankName;
                     document.getElementById('accNum').value = data.accNum;
@@ -180,6 +174,18 @@ box.style.display = "block";
                     lockInputs();
                 }
                 updateUI();
+                
+                // Tính toán mining offline
+                let lastExitTime = localStorage.getItem('lastExitTime');
+                if (lastExitTime) {
+                    let offlineTime = (Date.now() - parseInt(lastExitTime)) / 1000;
+                    let earnedOffline = MINING_PER_SECOND * offlineTime;
+                    aicoin += earnedOffline;
+                    localStorage.removeItem('lastExitTime');
+                    updateUI();
+                    saveDataToServer();
+                    showMessage("✅ NHẬN " + Math.floor(earnedOffline).toLocaleString() + " AICOIN TỪ ĐÀO OFFLINE!");
+                }
             })
             .catch(err => {
                 console.log("Lỗi tải dữ liệu:", err);
@@ -209,6 +215,16 @@ box.style.display = "block";
     // ⏰ LƯU DỮ LIỆU MỖI 30 GIÂY
     setInterval(() => { saveDataToServer(); }, 30000);
 
+    // 💾 LƯU THỜI GIAN THOÁT APP
+    window.onpagehide = () => { 
+        localStorage.setItem('lastExitTime', Date.now().toString());
+saveDataToServer(); 
+    };
+    window.onblur = () => { 
+        localStorage.setItem('lastExitTime', Date.now().toString());
+        saveDataToServer(); 
+    };
+
     function formatTime(ms) {
         let totalSeconds = Math.floor(ms / 1000);
         let minutes = Math.floor(totalSeconds / 60);
@@ -218,7 +234,7 @@ box.style.display = "block";
 
     setInterval(() => {
         let lastAd = localStorage.getItem('lastAdTime');
-let btn = document.getElementById('adBtn');
+        let btn = document.getElementById('adBtn');
         if (lastAd) {
             let elapsed = Date.now() - lastAd;
             let cooldown = 15 * 60 * 1000;
@@ -236,16 +252,6 @@ let btn = document.getElementById('adBtn');
         loadDataFromServer();
     };
 
-    // 💾 LƯU THỜI GIAN THOÁT APP
-    window.onpagehide = () => { 
-        localStorage.setItem('lastExitTime', Date.now().toString());
-        saveDataToServer(); 
-    };
-    window.onblur = () => { 
-        localStorage.setItem('lastExitTime', Date.now().toString());
-        saveDataToServer(); 
-    };
-
     function calculateExchange() {
         let amount = parseFloat(document.getElementById('exchangeAmount').value) || 0;
         let vndEarned = amount / AICOIN_TO_VND_RATE;
@@ -256,7 +262,7 @@ let btn = document.getElementById('adBtn');
         let amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
         let fee = Math.floor(amount * 0.10);
         let received = amount - fee;
-        document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: " + Math.floor(received).toLocaleString() + " VND";
+        document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: " + Math.floor(received).toLocaleString() + " VND";
     }
 
     function lockInputs() {
@@ -286,13 +292,13 @@ let btn = document.getElementById('adBtn');
         }
         
         saveDataToServer();
-        showMessage("ĐÃ LƯU THÔNG TIN!");
+showMessage("ĐÃ LƯU THÔNG TIN!");
         lockInputs();
     }
 
     function updateUI() {
         document.getElementById('aicoin').innerText = aicoin.toFixed(5);
-document.getElementById('hologram-value').innerText = aicoin.toFixed(5); 
+        document.getElementById('hologram-value').innerText = aicoin.toFixed(5); 
         document.getElementById('vnd').innerText = Math.floor(vnd).toLocaleString(); 
     }
 
@@ -326,11 +332,7 @@ document.getElementById('hologram-value').innerText = aicoin.toFixed(5);
     function watchAd() {
         if (typeof show_11017925 === 'function') {
             show_11017925().then(() => {
-                // 🎯 GIẢM XU AICOIN TỪ QUẢNG CÁO
-                // Mục tiêu: ~200-300 VND/ngày = ~2000-3000VND/tháng
-                // Xem 4 lần quảng cáo/ngày: 50-75 VND mỗi lần
-                // = 500,000 - 750,000 AICOIN/lần
-                let reward = (Math.random() < 0.9) ? 500000 : 750000;
+                let reward = (Math.random() < 0.9) ? 1500000 : 1800000; // TEST: 1.5M-1.8M
                 aicoin += reward; 
                 localStorage.setItem('lastAdTime', Date.now());
                 updateUI();
@@ -353,7 +355,7 @@ document.getElementById('hologram-value').innerText = aicoin.toFixed(5);
         saveDataToServer();
         showMessage("ĐỔI THÀNH CÔNG!"); 
         document.getElementById('exchangeAmount').value = '';
-        document.getElementById('exchangeDisplay').innerText = "TỶ LỀ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
+        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
         show('wallet', 'nav-wallet');
     }
 
@@ -362,11 +364,12 @@ document.getElementById('hologram-value').innerText = aicoin.toFixed(5);
         let accNum = document.getElementById('accNum').value;
         let accName = document.getElementById('accName').value;
         let amount = parseFloat(document.getElementById('withdrawAmount').value);
-let tg = window.Telegram.WebApp;
-        let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "UNKNOWN";
+        
+        let tg = window.Telegram.WebApp;
+let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "UNKNOWN";
         
         if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
-        if (!amount || amount < MIN_WITHDRAW) { showMessage("TỐI THIỂU 1.000 VND!"); return; }
+        if (!amount || amount < MIN_WITHDRAW) { showMessage("TỐI THIỂU 1 VND!"); return; }
         if (amount > vnd) { showMessage("SỐ DƯ KHÔNG ĐỦ!"); return; }
         
         let fee = Math.floor(amount * 0.10);
@@ -416,7 +419,7 @@ let tg = window.Telegram.WebApp;
                 updateUI();
                 saveDataToServer();
                 document.getElementById('withdrawAmount').value = '';
-                document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
+                document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
             } else { 
                 showMessage("❌ LỖI GỬI THÔNG BÁO! VUI LÒNG THỬ LẠI!"); 
             }
