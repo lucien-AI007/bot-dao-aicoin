@@ -126,6 +126,7 @@
 <script>
     let aicoin = 0;
     let vnd = 0;
+    let lastMiningTimestamp = 0; // ⭐ TIMESTAMP CUỐI CÙNG KHOÁ MINING
 
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
@@ -134,21 +135,29 @@
     const MINING_PER_SECOND = 0.231;
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzONqw7pKMmXkBZtix-WDL-CPybq-zBmsnsAbsfz9DQmEZxX70p115ClhW72qyr51SLdA/exec";
 
-    // TỰ LƯU THỜI ĐIỂM OFF (tránh mất bonus offline)
-    setInterval(() => {
-        localStorage.setItem('lastExitTime', Date.now().toString());
-    }, 10000);
-
     function showMessage(text) {
         let box = document.getElementById("app-message");
         box.innerText = text.toUpperCase();
-box.style.display = "block";
+        box.style.display = "block";
         setTimeout(() => { box.style.display = "none"; }, 5000);
     }
 
     function getTelegramUserId() {
         let tg = window.Telegram.WebApp;
         return tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+    }
+
+    // ⭐ TÍNH TOÁN AICOIN OFFLINE - KHOÁ VỚI TIMESTAMP
+    function calculateOfflineMining(lastTimestamp) {
+        let currentTime = Date.now();
+        let offlineSeconds = (currentTime - lastTimestamp) / 1000;
+        
+        // Chỉ cộng nếu offline > 5 giây
+        if (offlineSeconds > 5) {
+            let earnedOffline = MINING_PER_SECOND * offlineSeconds;
+            return earnedOffline;
+        }
+        return 0;
     }
 
     function loadDataFromServer() {
@@ -162,32 +171,33 @@ box.style.display = "block";
             .then(data => {
                 aicoin = parseFloat(data.aicoin) || 0;
                 vnd = parseFloat(data.vnd) || 0;
+                lastMiningTimestamp = parseInt(data.lastMiningTime) || Date.now(); // ⭐ LẤY TIMESTAMP TỪ SERVER
+                
                 if (data.bankName) {
                     document.getElementById('bankName').value = data.bankName;
                     document.getElementById('accNum').value = data.accNum;
                     document.getElementById('accName').value = data.accName;
                     lockInputs();
                 }
-                updateUI();
-
-                // SỬA: CỘNG ĐÀO OFFLINE CHUẨN NHẤT
-                let lastExitTime = localStorage.getItem('lastExitTime');
-                if (lastExitTime) {
-                    let offlineTime = (Date.now() - parseInt(lastExitTime)) / 1000;
-                    // chỉ cộng nếu off > 5 giây
-                    if (offlineTime > 5) {
-                        let earnedOffline = MINING_PER_SECOND * offlineTime;
-                        aicoin += earnedOffline;
-                        showMessage("✅ NHẬN " + Math.floor(earnedOffline).toLocaleString() + " AICOIN TỪ ĐÀO OFFLINE!");
-                        updateUI();
-                        saveDataToServer();
-                    }
-                    localStorage.removeItem('lastExitTime');
+                
+                // ⭐ TÍNH OFFLINE MINING NGAY KHI LOAD
+                let offlineEarned = calculateOfflineMining(lastMiningTimestamp);
+                if (offlineEarned > 0) {
+                    aicoin += offlineEarned;
+                    showMessage("✅ NHẬN " + Math.floor(offlineEarned).toLocaleString() + " AICOIN TỪ ĐÀO OFFLINE!");
                 }
+                
+                // ⭐ CẬP NHẬT TIMESTAMP MỚI
+                lastMiningTimestamp = Date.now();
+                
+                updateUI();
+                saveDataToServer();
             })
             .catch(err => {
                 console.log("Lỗi tải dữ liệu:", err);
                 showMessage("Lỗi kết nối server!");
+                // Fallback: nếu không load được, dùng localStorage
+                lastMiningTimestamp = parseInt(localStorage.getItem('lastMiningTime')) || Date.now();
             });
     }
 
@@ -203,25 +213,35 @@ box.style.display = "block";
                 vnd: vnd,
                 bankName: document.getElementById('bankName').value,
                 accNum: document.getElementById('accNum').value,
-                accName: document.getElementById('accName').value
+                accName: document.getElementById('accName').value,
+                lastMiningTime: lastMiningTimestamp // ⭐ LƯU TIMESTAMP
             })
         }).catch(err => console.log("Lỗi lưu dữ liệu:", err));
     }
-    setInterval(() => { saveDataToServer(); }, 30000);
-    window.onpagehide = () => { 
-        localStorage.setItem('lastExitTime', Date.now().toString());
-        saveDataToServer(); 
+
+    // ⭐ LƯU TIMESTAMP VÀO LOCALSTORAGE MỖI 10 GIÂY (TỰA NHƯ BACKUP)
+    setInterval(() => {
+        localStorage.setItem('lastMiningTime', lastMiningTimestamp.toString());
+        saveDataToServer();
+    }, 10000);
+
+    // ⭐ SAVE TRƯỚC KHI TẮT APP
+    window.onpagehide = () => {
+        localStorage.setItem('lastMiningTime', lastMiningTimestamp.toString());
+        saveDataToServer();
     };
-    window.onblur = () => { 
-        localStorage.setItem('lastExitTime', Date.now().toString());
-        saveDataToServer(); 
+    window.onblur = () => {
+        localStorage.setItem('lastMiningTime', lastMiningTimestamp.toString());
+        saveDataToServer();
     };
-function formatTime(ms) {
+
+    function formatTime(ms) {
         let totalSeconds = Math.floor(ms / 1000);
         let minutes = Math.floor(totalSeconds / 60);
         let seconds = totalSeconds % 60;
         return (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
     }
+
     setInterval(() => {
         let lastAd = localStorage.getItem('lastAdTime');
         let btn = document.getElementById('adBtn');
@@ -237,20 +257,24 @@ function formatTime(ms) {
             }
         }
     }, 1000);
+
     window.onload = () => {
         loadDataFromServer();
     };
+
     function calculateExchange() {
         let amount = parseFloat(document.getElementById('exchangeAmount').value) || 0;
         let vndEarned = amount / AICOIN_TO_VND_RATE;
         document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: " + Math.floor(vndEarned * 1000).toLocaleString() + " VND";
     }
+
     function calculateWithdrawFee() {
         let amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
         let fee = Math.floor(amount * 0.10);
         let received = amount - fee;
         document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1.000 VND | PHÍ: 10% | THỰC NHẬN: " + Math.floor(received).toLocaleString() + " VND";
     }
+
     function lockInputs() {
         document.getElementById('bankName').disabled = true;
         document.getElementById('accNum').disabled = true;
@@ -258,6 +282,7 @@ function formatTime(ms) {
         document.getElementById('saveBtn').style.display = 'none';
         document.getElementById('editBtn').style.display = 'block';
     }
+
     function editBank() {
         document.getElementById('bankName').disabled = false;
         document.getElementById('accNum').disabled = false;
@@ -265,6 +290,7 @@ function formatTime(ms) {
         document.getElementById('saveBtn').style.display = 'block';
         document.getElementById('editBtn').style.display = 'none';
     }
+
     function saveBank() {
         let bankName = document.getElementById('bankName').value.toUpperCase();
         let accNum = document.getElementById('accNum').value.toUpperCase();
@@ -277,15 +303,20 @@ function formatTime(ms) {
         showMessage("ĐÃ LƯU THÔNG TIN!");
         lockInputs();
     }
+
     function updateUI() {
         document.getElementById('aicoin').innerText = aicoin.toFixed(5);
-document.getElementById('hologram-value').innerText = aicoin.toFixed(5); 
-        document.getElementById('vnd').innerText = Math.floor(vnd).toLocaleString(); 
+        document.getElementById('hologram-value').innerText = aicoin.toFixed(5);
+        document.getElementById('vnd').innerText = Math.floor(vnd).toLocaleString();
     }
-    setInterval(() => { 
-        aicoin += MINING_PER_SECOND; 
-        updateUI(); 
+
+    // ⭐ MINING TỰ ĐỘNG LIÊN TỤC
+    setInterval(() => {
+        aicoin += MINING_PER_SECOND;
+        lastMiningTimestamp = Date.now(); // ⭐ CẬP NHẬT TIMESTAMP LIÊN TỤC
+        updateUI();
     }, 1000);
+
     function show(id, navId) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -294,46 +325,53 @@ document.getElementById('hologram-value').innerText = aicoin.toFixed(5);
             document.getElementById(navId).classList.add('active');
         }
     }
+
     function checkIn() {
         let today = new Date().toISOString().split('T')[0];
-        if (localStorage.getItem('lastCheckInDate') === today) { 
-            showMessage("BẠN ĐÃ ĐIỂM DANH HÔM NAY RỒI!"); 
-            return; 
+        if (localStorage.getItem('lastCheckInDate') === today) {
+            showMessage("BẠN ĐÃ ĐIỂM DANH HÔM NAY RỒI!");
+            return;
         }
         aicoin += 20000;
+        lastMiningTimestamp = Date.now(); // ⭐ CẬP NHẬT TIMESTAMP
         localStorage.setItem('lastCheckInDate', today);
         updateUI();
         saveDataToServer();
         showMessage("ĐÃ NHẬN 20.000 AICOIN!");
     }
+
     function watchAd() {
         if (typeof show_11017925 === 'function') {
             show_11017925().then(() => {
                 let reward = 30000;
-                aicoin += reward; 
+                aicoin += reward;
+                lastMiningTimestamp = Date.now(); // ⭐ CẬP NHẬT TIMESTAMP
                 localStorage.setItem('lastAdTime', Date.now());
                 updateUI();
-                saveDataToServer();
+                saveDataToServer(); // ⭐ LƯU NGAY LẬP TỨC
                 showMessage("CHÚC MỪNG! BẠN NHẬN ĐƯỢC " + reward.toLocaleString() + " AICOIN");
             });
-        } else { 
-            showMessage("QUẢNG CÁO CHƯA SẴN SÀNG!"); 
+        } else {
+            showMessage("QUẢNG CÁO CHƯA SẴN SÀNG!");
         }
     }
+
     function confirmExchange() {
         let amount = parseInt(document.getElementById('exchangeAmount').value);
         if (!amount || amount <= 0) { showMessage("VUI LÒNG NHẬP SỐ LƯỢNG!"); return; }
         if (amount > aicoin) { showMessage("KHÔNG ĐỦ AICOIN!"); return; }
         let vndEarned = amount / AICOIN_TO_VND_RATE * 1000;
-        aicoin -= amount; 
-        vnd += vndEarned; 
+        aicoin -= amount;
+        vnd += vndEarned;
+        lastMiningTimestamp = Date.now(); // ⭐ CẬP NHẬT TIMESTAMP
         updateUI();
-        saveDataToServer();
-        showMessage("ĐỔI THÀNH CÔNG!"); 
+        saveDataToServer(); // ⭐ LƯU NGAY LẬP TỨC
+        showMessage("ĐỔI THÀNH CÔNG!");
         document.getElementById('exchangeAmount').value = '';
-        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
+        document.getElementById('exchangeDisplay').innerText = "TỶ LỀ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
         show('wallet', 'nav-wallet');
     }
+
     function withdraw() {
         let bankName = document.getElementById('bankName').value;
         let accNum = document.getElementById('accNum').value;
@@ -342,14 +380,18 @@ document.getElementById('hologram-value').innerText = aicoin.toFixed(5);
         let withdrawBtn = document.getElementById('withdrawBtn');
         let tg = window.Telegram.WebApp;
         let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "UNKNOWN";
-if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
+
+        if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
         if (!amount || amount < MIN_WITHDRAW) { showMessage("TỐI THIỂU 1.000 VND!"); return; }
         if (amount > vnd) { showMessage("SỐ DƯ KHÔNG ĐỦ!"); return; }
+
         withdrawBtn.disabled = true;
         withdrawBtn.innerText = "ĐANG GỬI...";
+
         let fee = Math.floor(amount * 0.10);
         let receivedAmount = amount - fee;
         let orderId = "ORD_" + userId + "_" + Date.now();
+
         let message = `📋 <b>LỆNH RÚT TIỀN MỚI</b>\n\n👤 <b>User ID:</b> <code>${userId}</code>\n📦 <b>Đơn hàng:</b> <code>${orderId}</code>\n\n<b>Thông tin tài khoản:</b>\n🏦 Ngân hàng: <b>${bankName}</b>\n💳 Số TK: <b>${accNum}</b>\n👤 Tên người nhận: <b>${accName}</b>\n\n<b>Chi tiết thanh toán:</b>\n💰 Số tiền rút: <b>${amount.toFixed(0)} VND</b>\n📉 Phí (10%): <b>${fee.toFixed(0)} VND</b>\n✅ Thực nhận: <b>${receivedAmount.toFixed(0)} VND</b>\n\n⏳ <b>Trạng thái:</b> ĐANG CHỜ DUYỆT`;
         let keyboard = {
             "inline_keyboard": [
@@ -374,8 +416,9 @@ if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN
         .then(data => {
             if(data.ok) {
                 saveWithdrawRequest(userId, orderId, data.result.message_id, "pending", bankName, accNum, accName, amount, fee, receivedAmount);
-                showMessage("✅ GỬI YÊU CẦU THÀNH CÔNG!\nVUI LÒNG CHỜ ADMIN DUYỆT!"); 
+                showMessage("✅ GỬI YÊU CẦU THÀNH CÔNG!\nVUI LÒNG CHỜ ADMIN DUYỆT!");
                 vnd -= amount;
+                lastMiningTimestamp = Date.now(); // ⭐ CẬP NHẬT TIMESTAMP
                 updateUI();
                 saveDataToServer();
                 document.getElementById('withdrawAmount').value = '';
@@ -384,19 +427,20 @@ if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN
                     withdrawBtn.disabled = false;
                     withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
                 }, 3000);
-            } else { 
-                showMessage("❌ LỖI GỬI THÔNG BÁO! VUI LÒNG THỬ LẠI!"); 
+            } else {
+                showMessage("❌ LỖI GỬI THÔNG BÁO! VUI LÒNG THỬ LẠI!");
                 withdrawBtn.disabled = false;
                 withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
             }
         })
-        .catch(error => { 
-            showMessage("❌ LỖI KẾT NỐI! VUI LÒNG KIỂM TRA MẠNG!"); 
+        .catch(error => {
+            showMessage("❌ LỖI KẾT NỐI! VUI LÒNG KIỂM TRA MẠNG!");
             console.error(error);
             withdrawBtn.disabled = false;
-withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
+            withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
         });
     }
+
     function saveWithdrawRequest(userId, orderId, messageId, status, bankName, accNum, accName, amount, fee, receivedAmount) {
         fetch(GAS_URL, {
             method: 'POST',
@@ -416,12 +460,13 @@ withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
             })
         }).catch(err => console.log("Lỗi lưu request:", err));
     }
+
     function copyLink() {
         let copyText = document.getElementById("refLink");
         copyText.select();
         copyText.setSelectionRange(0, 99999);
         document.execCommand("copy");
-        showMessage("ĐÃ SAO CHÉP LINK MỜI!"); 
+        showMessage("ĐÃ SAO CHÉP LINK MỜI!");
     }
 </script>
 </body>
