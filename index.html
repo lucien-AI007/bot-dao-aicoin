@@ -7,47 +7,37 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='11017925' data-sdk='show_11017925'></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #004d4d; color: white; margin: 0; padding-bottom: 100px; text-transform: uppercase; font-size: 16px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #004d4d; color: white; margin: 0; padding-bottom: 100px; font-size: 16px; }
         .section { display: none; padding: 20px; text-align: center; }
         .active { display: block; }
-        #app-message { width: 85%; margin: 10px auto; padding: 12px; background: #008080; border: 1px solid #40E0D0; border-radius: 8px; text-align: center; display: none; font-size: 14px; font-weight: bold; color: white; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 25px 20px; background: rgba(0,0,0,0.3); border-bottom: 2px solid #008080; }
-        .username { font-weight: 900; font-size: 18px; letter-spacing: 1px; }
-        .status-badge { background: #004d4d; border: 1px solid #40E0D0; padding: 8px 15px; border-radius: 20px; font-size: 12px; color: #40E0D0; display: flex; align-items: center; gap: 5px; }
-        .pulse { width: 10px; height: 10px; background: #40E0D0; border-radius: 50%; animation: blink 1s infinite; }
+        #app-message { width: 85%; margin: 10px auto; padding: 12px; background: #008080; border: 1px solid #40E0D0; border-radius: 8px; display: none; font-size: 14px; font-weight: bold; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(0,0,0,0.3); border-bottom: 2px solid #008080; }
+        .username { font-weight: 900; font-size: 18px; }
+        .status-badge { background: #004d4d; border: 1px solid #40E0D0; padding: 6px 12px; border-radius: 15px; font-size: 12px; color: #40E0D0; display: flex; align-items: center; gap: 5px; }
+        .pulse { width: 8px; height: 8px; background: #40E0D0; border-radius: 50%; animation: blink 1s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        .balance-row { display: flex; gap: 10px; margin: 25px auto; width: 95%; }
-        .balance-box { flex: 1; background: rgba(0, 255, 255, 0.05); border: 1px solid #40E0D0; padding: 20px 10px; border-radius: 12px; text-align: center; }
-        .balance-label { font-size: 12px; color: #b3b3b3; margin-bottom: 8px; display: block; }
-        .balance-value { font-weight: bold; font-size: 18px; }
-        .section-title { text-align: left; font-size: 20px; color: #40E0D0; margin: 20px 0; padding-left: 15px; border-left: 5px solid #40E0D0; }
-        .info-msg, .fee-info { font-size: 14px; color: #40E0D0; margin-top: 10px; margin-bottom: 20px; display: block; }
-        .fee-info { color: #ff6666; }
-        .nav { position: fixed; bottom: 0; width: 100%; background: #003333; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid #008080; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; color: #b3b3b3; font-size: 12px; }
-        .nav-item span:first-child { font-size: 26px; margin-bottom: 4px; }
+        .balance-row { display: flex; gap: 10px; margin: 20px auto; width: 95%; }
+        .balance-box { flex: 1; background: rgba(0, 255, 255, 0.05); border: 1px solid #40E0D0; padding: 15px; border-radius: 10px; }
+        .balance-label { font-size: 11px; color: #b3b3b3; margin-bottom: 5px; }
+        .balance-value { font-weight: bold; font-size: 16px; color: #40E0D0; }
+        .section-title { text-align: left; font-size: 18px; color: #40E0D0; margin: 15px 0; padding-left: 10px; border-left: 4px solid #40E0D0; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: #003333; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid #008080; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; color: #b3b3b3; font-size: 11px; }
+        .nav-item span:first-child { font-size: 20px; margin-bottom: 3px; }
         .nav-item.active { color: #40E0D0; }
-        .hologram { width: 180px; height: 180px; border-radius: 50%; border: 4px solid #40E0D0; box-shadow: 0 0 30px #40E0D0; margin: 40px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .btn { background: #1a1a1a; color: white; padding: 18px 20px; border: 1px solid #333; border-radius: 10px; cursor: pointer; margin: 8px 0; width: 100%; font-weight: bold; font-size: 16px; }
-        .btn:active { transform: scale(0.98); }
+        .hologram { width: 150px; height: 150px; border-radius: 50%; border: 3px solid #40E0D0; box-shadow: 0 0 20px #40E0D0; margin: 30px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .btn { background: #1a1a1a; color: white; padding: 14px; border: 1px solid #333; border-radius: 8px; cursor: pointer; margin: 6px 0; width: 100%; font-weight: bold; font-size: 14px; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-withdraw { background: #1b5e20; border-color: #2e7d32; }
-        .btn-exchange { background: #856404; border-color: #b8860b; }
-        .btn-edit { background: #444; border-color: #666; }
-        .info-box { background: rgba(0, 255, 255, 0.05); border: 1px solid #008080; padding: 20px; border-radius: 10px; text-align: left; margin-top: 10px; font-size: 15px; }
-        input { width: 90%; padding: 16px; margin: 10px 0; border-radius: 10px; border: 1px solid #006666; background: #002626; color: white; text-align: center; font-size: 15px; }
-        input:disabled { background: #001a1a; color: #888; border-color: #333; }
+        .btn-withdraw { background: #1b5e20; }
+        .btn-exchange { background: #856404; }
+        input { width: 90%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #006666; background: #002626; color: white; text-align: center; }
         #refLink { text-transform: none; }
     </style>
 </head>
 <body>
 <div class="header">
-    <div style="display: flex; align-items: center; gap: 15px;">
-        <div class="username">MINE AICOIN</div>
-    </div>
-    <div class="status-badge">
-        <div class="pulse"></div> ĐANG ĐÀO
-    </div>
+    <div class="username">MINE AICOIN</div>
+    <div class="status-badge"><div class="pulse"></div> ĐANG ĐÀO</div>
 </div>
 
 <div id="app-message"></div>
@@ -55,17 +45,17 @@
 <div id="home" class="section active">
     <div class="balance-row">
         <div class="balance-box">
-            <span class="balance-label">AICOIN</span>
-            <div id="aicoin" class="balance-value" style="color: #40E0D0;">0.00000</div>
+            <div class="balance-label">AICOIN</div>
+            <div id="aicoin" class="balance-value">0.00000</div>
         </div>
         <div class="balance-box">
-            <span class="balance-label">VND</span>
-            <div id="vnd" class="balance-value" style="color: #fff;">0</div>
+            <div class="balance-label">VND</div>
+            <div id="vnd" class="balance-value">0</div>
         </div>
     </div>
     <div class="hologram">
-        <span style="font-size: 14px;">MINING...</span>
-        <span id="hologram-value" style="font-size: 24px; font-weight: bold;">0.00000</span>
+        <span style="font-size: 12px;">MINING...</span>
+        <span id="hologram-value" style="font-size: 18px; font-weight: bold;">0.00000</span>
     </div>
     <button class="btn" onclick="checkIn()">ĐIỂM DANH</button>
 </div>
@@ -78,7 +68,7 @@
 <div id="friends" class="section">
     <h2 class="section-title">BẠN BÈ</h2>
     <input type="text" id="refLink" value="http://t.me/maydaoAICOIN_bot" readonly>
-    <button class="btn" onclick="copyLink()">SAO CHÉP LIÊN KẾT MỜI</button>
+    <button class="btn" onclick="copyLink()">SAO CHÉP LIÊN KẾT</button>
 </div>
 
 <div id="wallet" class="section">
@@ -86,152 +76,148 @@
     <input type="text" id="bankName" placeholder="TÊN NGÂN HÀNG">
     <input type="text" id="accNum" placeholder="SỐ TÀI KHOẢN">
     <input type="text" id="accName" placeholder="TÊN NGƯỜI NHẬN">
-    <div id="wallet-controls">
-        <button id="saveBtn" class="btn" onclick="saveBank()">LƯU THÔNG TIN</button>
-        <button id="editBtn" class="btn btn-edit" onclick="editBank()" style="display:none;">CHỈNH SỬA</button>
-    </div>
-    <hr style="border: 0; border-top: 1px solid #008080; margin: 25px 0;">
+    <button id="saveBtn" class="btn" onclick="saveBank()">LƯU</button>
+    <button id="editBtn" class="btn" onclick="editBank()" style="display:none;">CHỈNH SỬA</button>
+    <hr style="border: 0; border-top: 1px solid #008080; margin: 15px 0;">
     <h2 class="section-title">RÚT TIỀN</h2>
-    <input type="number" id="withdrawAmount" placeholder="SỐ TIỀN MUỐN RÚT (VND)" oninput="calculateWithdrawFee()">
-    <div id="feeDisplay" class="fee-info">TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: 0 VND</div>
-    <button class="btn btn-withdraw" id="withdrawBtn" onclick="withdraw()">XÁC NHẬN RÚT TIỀN</button>
-    <button class="btn btn-exchange" onclick="show('exchange-page', 'nav-wallet')">ĐỔI AICOIN SANG VND</button>
+    <input type="number" id="withdrawAmount" placeholder="SỐ TIỀN (VND)" oninput="calculateWithdrawFee()">
+    <div style="font-size: 12px; color: #ff6666; margin: 10px 0;">TỐI THIỂU: 1 VND | PHÍ: 10% | <span id="withdrawReceived">NHẬN: 0</span> VND</div>
+    <button class="btn btn-withdraw" id="withdrawBtn" onclick="withdraw()">RÚT TIỀN</button>
+    <button class="btn btn-exchange" onclick="show('exchange-page')">ĐỔI AICOIN</button>
 </div>
 
 <div id="exchange-page" class="section">
     <h2 class="section-title">QUY ĐỔI</h2>
-    <input type="number" id="exchangeAmount" placeholder="NHẬP SỐ AICOIN" oninput="calculateExchange()">
-    <div id="exchangeDisplay" class="info-msg">TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND</div>
-    <button class="btn btn-exchange" onclick="confirmExchange()">XÁC NHẬN ĐỔI</button>
-    <button class="btn" style="background: #333;" onclick="show('wallet', 'nav-wallet')">QUAY LẠI VÍ</button>
+    <input type="number" id="exchangeAmount" placeholder="NHẬP AICOIN" oninput="calculateExchange()">
+    <div style="font-size: 12px; color: #40E0D0; margin: 10px 0;">TỶ LỆ: 10.000.000 = 1.000 VND | <span id="exchangeReceived">NHẬN: 0</span> VND</div>
+    <button class="btn btn-exchange" onclick="confirmExchange()">ĐỔI</button>
+    <button class="btn" onclick="show('wallet')" style="background: #333;">QUAY LẠI</button>
 </div>
 
 <div id="info" class="section">
     <h2 class="section-title">THÔNG TIN</h2>
-    <div class="info-box">
-        <p><strong>✅ 1. CƠ CHẾ ĐÀO:</strong> ĐÀO COIN TỰ ĐỘNG VĨNH VIỄN.</p>
-        <p><strong>✅ 2. PHẦN THƯỞNG:</strong> XEM QUẢNG CÁO ĐỂ NHẬN 30.000 AICOIN MỖI 15 PHÚT.</p>
-        <p><strong>✅ 3. ĐIỂM DANH:</strong> NHẬN 20.000 AICOIN MỖI NGÀY.</p>
-        <p><strong>⚠️ BẢN TEST:</strong> MIN RÚT 1 VND ĐỂ TEST CHỨC NĂNG THÔNG BÁO TELEGRAM.</p>
-    </div>
+    <p style="text-align: left; font-size: 13px; line-height: 1.8;">
+        ✅ <b>Đào coin</b> tự động vĩnh viễn<br>
+        ✅ <b>Quảng cáo</b> 30.000 AICOIN/15 phút<br>
+        ✅ <b>Điểm danh</b> 20.000 AICOIN/ngày<br>
+        ✅ <b>Offline</b> vẫn đào liên tục<br>
+        ⚠️ <b>TEST:</b> Min rút 1 VND
+    </p>
 </div>
 
 <div class="nav">
-    <div class="nav-item active" id="nav-home" onclick="show('home', 'nav-home')"><span>🏠</span><span>TRANG CHỦ</span></div>
-    <div class="nav-item" id="nav-tasks" onclick="show('tasks', 'nav-tasks')"><span>📋</span><span>NHIỆM VỤ</span></div>
-    <div class="nav-item" id="nav-friends" onclick="show('friends', 'nav-friends')"><span>🤝</span><span>BẠN BÈ</span></div>
-    <div class="nav-item" id="nav-wallet" onclick="show('wallet', 'nav-wallet')"><span>💳</span><span>VÍ TIỀN</span></div>
-    <div class="nav-item" id="nav-info" onclick="show('info', 'nav-info')"><span>⚙️</span><span>THÔNG TIN</span></div>
+    <div class="nav-item active" id="nav-home" onclick="show('home')"><span>🏠</span>TRANG CHỦ</div>
+    <div class="nav-item" id="nav-tasks" onclick="show('tasks')"><span>📋</span>NHIỆM VỤ</div>
+    <div class="nav-item" id="nav-friends" onclick="show('friends')"><span>🤝</span>BẠN BÈ</div>
+    <div class="nav-item" id="nav-wallet" onclick="show('wallet')"><span>💳</span>VÍ</div>
+    <div class="nav-item" id="nav-info" onclick="show('info')"><span>ℹ️</span>INFO</div>
 </div>
 
 <script>
     let aicoin = 0;
     let vnd = 0;
+    let lastSaveTime = Date.now();
     let lastMiningTime = Date.now();
 
     const BOT_TOKEN = "8908842645:AAHhhhgYQNUns2-dPZae9YphWRUr4xK0nYo";
     const ADMIN_GROUP_ID = "-1003805814043";
-    const MIN_WITHDRAW = 1; // TEST: min 1 VND
+    const MIN_WITHDRAW = 1;
     const AICOIN_TO_VND_RATE = 10000000;
     const MINING_PER_SECOND = 0.231;
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzaWKD_ouTdwIes_fnLnjrv9Z-tZwE289lni_oSRQbcjbLUel16RwcHG3orAZ5Qyvt5/exec";
 
-    // ===== LƯU DỮ LIỆU OFFLINE TỐT HƠN =====
-    function saveLocalData() {
-        let userId = getTelegramUserId();
-        let userData = {
+    // ===== CORE FUNCTIONS =====
+    function getTelegramUserId() {
+        let tg = window.Telegram.WebApp;
+        return tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "test_123";
+    }
+
+    function getStorageKey() {
+        return "aimine_" + getTelegramUserId();
+    }
+
+    // ===== SAVE LOCAL DATA (CRITICAL) =====
+    function saveLocal() {
+        let key = getStorageKey();
+        let data = {
             aicoin: aicoin,
             vnd: vnd,
             lastMiningTime: lastMiningTime,
             bankName: document.getElementById('bankName').value,
             accNum: document.getElementById('accNum').value,
-            accName: document.getElementById('accName').value
+            accName: document.getElementById('accName').value,
+            savedAt: Date.now()
         };
-        localStorage.setItem('aiMiningData_' + userId, JSON.stringify(userData));
+        localStorage.setItem(key, JSON.stringify(data));
+        console.log("💾 Lưu local:", data);
     }
 
-    function loadLocalData() {
-        let userId = getTelegramUserId();
-        let saved = localStorage.getItem('aiMiningData_' + userId);
+    // ===== LOAD LOCAL DATA =====
+    function loadLocal() {
+        let key = getStorageKey();
+        let saved = localStorage.getItem(key);
+        
         if (saved) {
             try {
                 let data = JSON.parse(saved);
-                aicoin = data.aicoin || 0;
-                vnd = data.vnd || 0;
+                aicoin = parseFloat(data.aicoin) || 0;
+                vnd = parseFloat(data.vnd) || 0;
                 lastMiningTime = data.lastMiningTime || Date.now();
                 
-                // Tính toán mining offline
-                let offlineTime = (Date.now() - lastMiningTime) / 1000;
-                if (offlineTime > 0 && offlineTime < 86400) { // Max 1 ngày
-                    let earnedOffline = MINING_PER_SECOND * offlineTime;
-                    aicoin += earnedOffline;
-                    showMessage("✅ NHẬN " + Math.floor(earnedOffline).toLocaleString() + " AICOIN TỪ ĐÀO OFFLINE!");
+                // FIX: Tính mining offline
+                let offlineSeconds = (Date.now() - lastMiningTime) / 1000;
+                if (offlineSeconds > 1 && offlineSeconds < 86400) {
+                    let offlineMined = MINING_PER_SECOND * offlineSeconds;
+                    aicoin += offlineMined;
+                    showMessage("✅ NHẬN " + Math.floor(offlineMined).toLocaleString() + " AICOIN OFFLINE!");
+                    console.log("⛏️ Offline mining: " + offlineSeconds.toFixed(1) + "s => " + offlineMined.toFixed(5) + " AICOIN");
                 }
-                lastMiningTime = Date.now();
                 
                 document.getElementById('bankName').value = data.bankName || "";
                 document.getElementById('accNum').value = data.accNum || "";
                 document.getElementById('accName').value = data.accName || "";
-                if (data.bankName) lockInputs();
+                
+                if (data.bankName) {
+                    document.getElementById('bankName').disabled = true;
+                    document.getElementById('accNum').disabled = true;
+                    document.getElementById('accName').disabled = true;
+                    document.getElementById('saveBtn').style.display = 'none';
+                    document.getElementById('editBtn').style.display = 'block';
+                }
+                
+                updateUI();
+                console.log("✅ Load local thành công: AICOIN=" + aicoin.toFixed(5) + ", VND=" + vnd);
             } catch(e) {
-                console.log("Lỗi load local:", e);
+                console.error("❌ Lỗi load local:", e);
             }
         }
+        
+        lastMiningTime = Date.now();
     }
 
-    // ===== AUTO LƯU ĐỊNH KỲ =====
+    // ===== AUTO SAVE INTERVAL =====
     setInterval(() => {
-        saveLocalData();
-        saveDataToServer();
-    }, 15000); // Lưu mỗi 15 giây
+        saveLocal();
+        syncToServer();
+    }, 10000); // Lưu mỗi 10 giây
 
-    window.onpagehide = () => { 
+    // ===== PAGE EVENTS =====
+    window.addEventListener('beforeunload', () => {
         lastMiningTime = Date.now();
-        saveLocalData();
-        saveDataToServer(); 
-    };
+        saveLocal();
+        console.log("📤 Page unload - lưu dữ liệu");
+    });
 
-    window.onblur = () => { 
-        lastMiningTime = Date.now();
-        saveLocalData();
-    };
+    window.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            lastMiningTime = Date.now();
+            saveLocal();
+            console.log("🔌 App hidden - lưu offline time");
+        }
+    });
 
-    function showMessage(text) {
-        let box = document.getElementById("app-message");
-        box.innerText = text.toUpperCase();
-        box.style.display = "block";
-        setTimeout(() => { box.style.display = "none"; }, 5000);
-    }
-
-    function getTelegramUserId() {
-        let tg = window.Telegram.WebApp;
-        return tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "test_user_123";
-    }
-
-    function loadDataFromServer() {
-        let userId = getTelegramUserId();
-        fetch(GAS_URL + "?action=getData&userId=" + userId)
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.aicoin !== undefined) {
-                    aicoin = parseFloat(data.aicoin) || 0;
-                    vnd = parseFloat(data.vnd) || 0;
-                    document.getElementById('bankName').value = data.bankName || "";
-                    document.getElementById('accNum').value = data.accNum || "";
-                    document.getElementById('accName').value = data.accName || "";
-                    if (data.bankName) lockInputs();
-                    lastMiningTime = Date.now();
-                    updateUI();
-                    saveLocalData(); // Lưu local backup
-                }
-            })
-            .catch(err => {
-                console.log("Lỗi tải server, dùng local:", err);
-                loadLocalData();
-            });
-    }
-
-    function saveDataToServer() {
+    // ===== SYNC TO SERVER =====
+    function syncToServer() {
         let userId = getTelegramUserId();
         fetch(GAS_URL, {
             method: 'POST',
@@ -244,57 +230,53 @@
                 accNum: document.getElementById('accNum').value,
                 accName: document.getElementById('accName').value
             })
-        }).catch(err => console.log("Lỗi lưu server:", err));
+        }).catch(err => console.log("⚠️ Sync server lỗi:", err));
     }
 
-    function formatTime(ms) {
-        let totalSeconds = Math.floor(ms / 1000);
-        let minutes = Math.floor(totalSeconds / 60);
-        let seconds = totalSeconds % 60;
-        return (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+    // ===== UI FUNCTIONS =====
+    function showMessage(text) {
+        let box = document.getElementById("app-message");
+        box.textContent = text;
+        box.style.display = "block";
+        setTimeout(() => { box.style.display = "none"; }, 4000);
     }
 
-    setInterval(() => {
-        let userId = getTelegramUserId();
-        let lastAd = localStorage.getItem('lastAdTime_' + userId);
-        let btn = document.getElementById('adBtn');
-        if (lastAd) {
-            let elapsed = Date.now() - parseInt(lastAd);
-            let cooldown = 15 * 60 * 1000;
-            if (elapsed < cooldown) {
-                btn.innerText = formatTime(cooldown - elapsed);
-                btn.disabled = true;
-            } else {
-                btn.innerText = "XEM QUẢNG CÁO";
-                btn.disabled = false;
-            }
+    function updateUI() {
+        document.getElementById('aicoin').textContent = aicoin.toFixed(5);
+        document.getElementById('hologram-value').textContent = aicoin.toFixed(5);
+        document.getElementById('vnd').textContent = Math.floor(vnd).toLocaleString();
+    }
+
+    function show(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        
+        let navMap = {'home': 'nav-home', 'tasks': 'nav-tasks', 'friends': 'nav-friends', 'wallet': 'nav-wallet', 'info': 'nav-info', 'exchange-page': 'nav-wallet'};
+        let navId = navMap[id];
+        if (navId) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(navId).classList.add('active');
         }
+    }
+
+    // ===== MINING LOOP =====
+    setInterval(() => {
+        aicoin += MINING_PER_SECOND;
+        updateUI();
     }, 1000);
 
-    window.onload = () => {
-        loadLocalData();
-        loadDataFromServer();
-    };
+    // ===== WALLET FUNCTIONS =====
+    function calculateWithdrawFee() {
+        let amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+        let fee = Math.floor(amount * 0.1);
+        let received = amount - fee;
+        document.getElementById('withdrawReceived').textContent = "NHẬN: " + Math.floor(received).toLocaleString();
+    }
 
     function calculateExchange() {
         let amount = parseFloat(document.getElementById('exchangeAmount').value) || 0;
-        let vndEarned = amount / AICOIN_TO_VND_RATE * 1000;
-        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: " + Math.floor(vndEarned).toLocaleString() + " VND";
-    }
-
-    function calculateWithdrawFee() {
-        let amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
-        let fee = Math.floor(amount * 0.10);
-        let received = amount - fee;
-        document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: " + Math.floor(received).toLocaleString() + " VND";
-    }
-
-    function lockInputs() {
-        document.getElementById('bankName').disabled = true;
-        document.getElementById('accNum').disabled = true;
-        document.getElementById('accName').disabled = true;
-        document.getElementById('saveBtn').style.display = 'none';
-        document.getElementById('editBtn').style.display = 'block';
+        let vndReceived = Math.floor((amount / AICOIN_TO_VND_RATE) * 1000);
+        document.getElementById('exchangeReceived').textContent = "NHẬN: " + vndReceived.toLocaleString();
     }
 
     function editBank() {
@@ -306,85 +288,87 @@
     }
 
     function saveBank() {
-        let bankName = document.getElementById('bankName').value.toUpperCase();
-        let accNum = document.getElementById('accNum').value.toUpperCase();
-        let accName = document.getElementById('accName').value.toUpperCase();
+        let bankName = document.getElementById('bankName').value.toUpperCase().trim();
+        let accNum = document.getElementById('accNum').value.toUpperCase().trim();
+        let accName = document.getElementById('accName').value.toUpperCase().trim();
+        
         if (!bankName || !accNum || !accName) {
-            showMessage("VUI LÒNG NHẬP ĐẦY ĐỦ THÔNG TIN!");
+            showMessage("VUI LÒNG NHẬP ĐẦY ĐỦ THÔNG TIN");
             return;
         }
-        saveDataToServer();
-        saveLocalData();
-        showMessage("ĐÃ LƯU THÔNG TIN!");
-        lockInputs();
-    }
-
-    function updateUI() {
-        document.getElementById('aicoin').innerText = aicoin.toFixed(5);
-        document.getElementById('hologram-value').innerText = aicoin.toFixed(5);
-        document.getElementById('vnd').innerText = Math.floor(vnd).toLocaleString();
-    }
-
-    setInterval(() => { 
-        aicoin += MINING_PER_SECOND; 
-        updateUI(); 
-    }, 1000);
-
-    function show(id, navId) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        if (navId) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(navId).classList.add('active');
-        }
-    }
-
-    function checkIn() {
-        let userId = getTelegramUserId();
-        let today = new Date().toISOString().split('T')[0];
-        if (localStorage.getItem('lastCheckInDate_' + userId) === today) { 
-            showMessage("BẠN ĐÃ ĐIỂM DANH HÔM NAY RỒI!"); 
-            return; 
-        }
-        aicoin += 20000;
-        localStorage.setItem('lastCheckInDate_' + userId, today);
-        updateUI();
-        saveLocalData();
-        saveDataToServer();
-        showMessage("ĐÃ NHẬN 20.000 AICOIN!");
-    }
-
-    function watchAd() {
-        if (typeof show_11017925 === 'function') {
-            show_11017925().then(() => {
-                let userId = getTelegramUserId();
-                let reward = 30000;
-                aicoin += reward; 
-                localStorage.setItem('lastAdTime_' + userId, Date.now());
-                updateUI();
-                saveLocalData();
-                saveDataToServer();
-                showMessage("CHÚC MỪNG! NHẬN " + reward.toLocaleString() + " AICOIN");
-            });
-        } else { 
-            showMessage("QUẢNG CÁO CHƯA SẴN SÀNG!"); 
-        }
+        
+        saveLocal();
+        syncToServer();
+        showMessage("ĐÃ LƯU THÔNG TIN");
+        
+        document.getElementById('bankName').disabled = true;
+        document.getElementById('accNum').disabled = true;
+        document.getElementById('accName').disabled = true;
+        document.getElementById('saveBtn').style.display = 'none';
+        document.getElementById('editBtn').style.display = 'block';
     }
 
     function confirmExchange() {
-        let amount = parseInt(document.getElementById('exchangeAmount').value);
-        if (!amount || amount <= 0) { showMessage("VUI LÒNG NHẬP SỐ LƯỢNG!"); return; }
-        if (amount > aicoin) { showMessage("KHÔNG ĐỦ AICOIN!"); return; }
-        let vndEarned = amount / AICOIN_TO_VND_RATE * 1000;
-        aicoin -= amount; 
-        vnd += vndEarned; 
+        let amount = parseInt(document.getElementById('exchangeAmount').value) || 0;
+        
+        if (!amount || amount <= 0) {
+            showMessage("NHẬP SỐ LƯỢNG");
+            return;
+        }
+        if (amount > aicoin) {
+            showMessage("KHÔNG ĐỦ AICOIN");
+            return;
+        }
+        
+        let vndReceived = Math.floor((amount / AICOIN_TO_VND_RATE) * 1000);
+        aicoin -= amount;
+        vnd += vndReceived;
         updateUI();
-        saveLocalData();
-        saveDataToServer();
-        showMessage("ĐỔI THÀNH CÔNG!"); 
+        saveLocal();
+        syncToServer();
+        
+        showMessage("ĐỔI THÀNH CÔNG");
         document.getElementById('exchangeAmount').value = '';
-        document.getElementById('exchangeDisplay').innerText = "TỶ LỆ: 10.000.000 AICOIN = 1.000 VND | NHẬN ĐƯỢC: 0 VND";
-        show('wallet', 'nav-wallet');
+        document.getElementById('exchangeReceived').textContent = "NHẬN: 0";
+        show('wallet');
+    }
+
+    function checkIn() {
+        let today = new Date().toISOString().split('T')[0];
+        let key = "checkin_" + getTelegramUserId();
+        
+        if (localStorage.getItem(key) === today) {
+            showMessage("ĐÃ ĐIỂM DANH HÔM NAY");
+            return;
+        }
+        
+        aicoin += 20000;
+        localStorage.setItem(key, today);
+        updateUI();
+        saveLocal();
+        syncToServer();
+        showMessage("NHẬN 20.000 AICOIN");
+    }
+
+    function watchAd() {
+        if (typeof show_11017925 !== 'function') {
+            showMessage("QUẢNG CÁO CHƯA SẴN");
+            return;
+        }
+        
+        show_11017925().then(() => {
+            let userId = getTelegramUserId();
+            let key = "ad_" + userId;
+            
+            aicoin += 30000;
+            localStorage.setItem(key, Date.now());
+            updateUI();
+            saveLocal();
+            syncToServer();
+            showMessage("NHẬN 30.000 AICOIN");
+        }).catch(() => {
+            showMessage("LỖI QUẢNG CÁO");
+        });
     }
 
     function withdraw() {
@@ -392,99 +376,87 @@
         let accNum = document.getElementById('accNum').value;
         let accName = document.getElementById('accName').value;
         let amount = parseFloat(document.getElementById('withdrawAmount').value);
-        let withdrawBtn = document.getElementById('withdrawBtn');
+        let btn = document.getElementById('withdrawBtn');
         let tg = window.Telegram.WebApp;
-        let userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "UNKNOWN";
-
-        if (!bankName || !accNum || !accName) { showMessage("VUI LÒNG NHẬP THÔNG TIN VÍ!"); return; }
-        if (!amount || amount < MIN_WITHDRAW) { showMessage("TỐI THIỂU " + MIN_WITHDRAW + " VND!"); return; }
-        if (amount > vnd) { showMessage("SỐ DƯ KHÔNG ĐỦ!"); return; }
-
-        withdrawBtn.disabled = true;
-        withdrawBtn.innerText = "ĐANG GỬI...";
-
-        let fee = Math.floor(amount * 0.10);
-        let receivedAmount = amount - fee;
+        let userId = tg.initDataUnsafe?.user?.id || "UNKNOWN";
+        
+        if (!bankName || !accNum || !accName) {
+            showMessage("NHẬP THÔNG TIN VÍ");
+            return;
+        }
+        if (!amount || amount < MIN_WITHDRAW) {
+            showMessage("TỐI THIỂU 1 VND");
+            return;
+        }
+        if (amount > vnd) {
+            showMessage("SỐ DƯ KHÔNG ĐỦ");
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.textContent = "ĐANG GỬI...";
+        
+        let fee = Math.floor(amount * 0.1);
+        let received = amount - fee;
         let orderId = "ORD_" + userId + "_" + Date.now();
-
-        let message = `📋 <b>LỆNH RÚT TIỀN MỚI</b>\n\n👤 <b>User ID:</b> <code>${userId}</code>\n📦 <b>Đơn hàng:</b> <code>${orderId}</code>\n\n<b>Thông tin tài khoản:</b>\n🏦 Ngân hàng: <b>${bankName}</b>\n💳 Số TK: <b>${accNum}</b>\n👤 Tên người nhận: <b>${accName}</b>\n\n<b>Chi tiết thanh toán:</b>\n💰 Số tiền rút: <b>${amount.toFixed(0)} VND</b>\n📉 Phí (10%): <b>${fee.toFixed(0)} VND</b>\n✅ Thực nhận: <b>${receivedAmount.toFixed(0)} VND</b>\n\n⏳ <b>Trạng thái:</b> ĐANG CHỜ DUYỆT`;
-
-        let keyboard = {
-            "inline_keyboard": [
-                [
-                    { "text": "✅ DUYỆT ĐƠN", "callback_data": "approve_" + orderId },
-                    { "text": "❌ TỪ CHỐI", "callback_data": "reject_" + orderId }
-                ]
-            ]
-        };
-
-        let url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-        fetch(url, {
+        
+        let msg = `📋 <b>RÚT TIỀN</b>\n👤 ID: <code>${userId}</code>\n📦 <code>${orderId}</code>\n🏦 ${bankName}\n💳 ${accNum}\n👤 ${accName}\n💰 ${Math.floor(amount)} VND | Phí: ${fee} | Nhận: ${received}`;
+        
+        let keyboard = {"inline_keyboard": [[
+            {"text": "✅ DUYỆT", "callback_data": "approve_" + orderId},
+            {"text": "❌ TỪ CHỐI", "callback_data": "reject_" + orderId}
+        ]]};
+        
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 chat_id: ADMIN_GROUP_ID,
-                text: message,
+                text: msg,
                 parse_mode: 'HTML',
                 reply_markup: keyboard
             })
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
-            if(data.ok) {
-                saveWithdrawRequest(userId, orderId, data.result.message_id, "pending", bankName, accNum, accName, amount, fee, receivedAmount);
-                showMessage("✅ GỬI YÊU CẦU THÀNH CÔNG!\nVUI LÒNG CHỜ ADMIN DUYỆT!"); 
+            if (data.ok) {
                 vnd -= amount;
                 updateUI();
-                saveLocalData();
-                saveDataToServer();
+                saveLocal();
+                syncToServer();
+                showMessage("✅ GỬI YÊU CẦU - CHỜ DUYỆT");
                 document.getElementById('withdrawAmount').value = '';
-                document.getElementById('feeDisplay').innerText = "TỐI THIỂU: 1 VND | PHÍ: 10% | THỰC NHẬN: 0 VND";
+                document.getElementById('withdrawReceived').textContent = "NHẬN: 0";
+                
                 setTimeout(() => {
-                    withdrawBtn.disabled = false;
-                    withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
+                    btn.disabled = false;
+                    btn.textContent = "RÚT TIỀN";
                 }, 3000);
-            } else { 
-                showMessage("❌ LỖI GỬI THÔNG BÁO! VUI LÒNG THỬ LẠI!"); 
-                withdrawBtn.disabled = false;
-                withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
+            } else {
+                showMessage("❌ LỖI GỬI");
+                btn.disabled = false;
+                btn.textContent = "RÚT TIỀN";
             }
         })
-        .catch(error => { 
-            showMessage("❌ LỖI KẾT NỐI! VUI LÒNG KIỂM TRA MẠNG!"); 
-            console.error(error);
-            withdrawBtn.disabled = false;
-            withdrawBtn.innerText = "XÁC NHẬN RÚT TIỀN";
+        .catch(err => {
+            showMessage("❌ LỖI KẾT NỐI");
+            btn.disabled = false;
+            btn.textContent = "RÚT TIỀN";
         });
     }
 
-    function saveWithdrawRequest(userId, orderId, messageId, status, bankName, accNum, accName, amount, fee, receivedAmount) {
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: "saveWithdraw",
-                userId: userId,
-                orderId: orderId,
-                messageId: messageId,
-                status: status,
-                bankName: bankName,
-                accNum: accNum,
-                accName: accName,
-                amount: amount,
-                fee: fee,
-                receivedAmount: receivedAmount,
-                timestamp: Date.now()
-            })
-        }).catch(err => console.log("Lỗi lưu withdraw:", err));
+    function copyLink() {
+        let link = document.getElementById('refLink');
+        link.select();
+        document.execCommand('copy');
+        showMessage("ĐÃ SAO CHÉP");
     }
 
-    function copyLink() {
-        let copyText = document.getElementById("refLink");
-        copyText.select();
-        copyText.setSelectionRange(0, 99999);
-        document.execCommand("copy");
-        showMessage("ĐÃ SAO CHÉP LINK MỜI!"); 
-    }
+    // ===== INIT =====
+    window.addEventListener('load', () => {
+        loadLocal();
+        console.log("🚀 App initialized");
+    });
 </script>
 </body>
 </html>
