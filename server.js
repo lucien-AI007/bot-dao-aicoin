@@ -6,14 +6,7 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  credentials: true
-}));
-
-// Handle preflight requests
-app.options('*', cors());
+app.use(cors());
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const ADMIN_GROUP_ID = process.env.ADMIN_GROUP_ID;
@@ -144,73 +137,28 @@ app.post('/api/telegram-webhook', (req, res) => {
     console.log(`📨 Admin action: ${action} - ${orderId}`);
 
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
-    
-    // Lấy userId từ database
-    db.get(
-      'SELECT userId FROM withdraws WHERE orderId = ?',
-      [orderId],
-      (err, row) => {
-        if (err) {
-          console.error('DB Error:', err);
-          res.json({ ok: true });
-          return;
-        }
-
-        const userId = row?.userId;
-        if (!userId) {
-          console.error('User ID not found for order:', orderId);
-          res.json({ ok: true });
-          return;
-        }
-
-        // Cập nhật status
-        db.run(
-          'UPDATE withdraws SET status = ? WHERE orderId = ?',
-          [newStatus, orderId],
-          (err) => {
-            if (err) console.error('DB Error:', err);
-          }
-        );
-
-        // Thông báo cho admin
-        const emoji = action === 'approve' ? '✅' : '❌';
-        const text = action === 'approve' 
-          ? `${emoji} ĐƠN ${orderId} ĐÃ ĐƯỢC DUYỆT!` 
-          : `${emoji} ĐƠN ${orderId} BỊ TỪ CHỐI!`;
-
-        axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
-          callback_query_id: callbackQuery.id,
-          text: text,
-          show_alert: true
-        }).catch(err => console.error('Error:', err));
-
-        // Chỉnh sửa message admin
-        axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
-          chat_id: ADMIN_GROUP_ID,
-          message_id: messageId,
-          text: `${text}\n\n📋 Order: ${orderId}`,
-          parse_mode: 'HTML'
-        }).catch(err => console.error('Error:', err));
-
-        // ⭐ GỬI DM CHO NGƯỜI DÙNG
-        let userMessage = '';
-        if (action === 'approve') {
-          userMessage = `✅ <b>LỆNH RÚT TIỀN ĐÃ ĐƯỢC DUYỆT!</b>\n\n📋 Đơn hàng: <code>${orderId}</code>\n💰 Số tiền: sẽ được chuyển trong 24 giờ\n\n📞 Liên hệ admin nếu có vấn đề!`;
-        } else {
-          userMessage = `❌ <b>LỆNH RÚT TIỀN BỊ TỪ CHỐI!</b>\n\n📋 Đơn hàng: <code>${orderId}</code>\n⚠️ Vui lòng kiểm tra lại thông tin tài khoản\n\n📞 Liên hệ admin để biết chi tiết!`;
-        }
-
-        axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-          chat_id: userId,
-          text: userMessage,
-          parse_mode: 'HTML'
-        }).then(response => {
-          console.log('✅ DM sent to user:', userId);
-        }).catch(err => {
-          console.error('❌ Failed to send DM:', err.message);
-        });
-      }
+    db.run(
+      'UPDATE withdraws SET status = ? WHERE orderId = ?',
+      [newStatus, orderId]
     );
+
+    const emoji = action === 'approve' ? '✅' : '❌';
+    const text = action === 'approve' 
+      ? `${emoji} ĐƠN ${orderId} ĐÃ ĐƯỢC DUYỆT!` 
+      : `${emoji} ĐƠN ${orderId} BỊ TỪ CHỐI!`;
+
+    axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+      callback_query_id: callbackQuery.id,
+      text: text,
+      show_alert: true
+    }).catch(err => console.error('Error:', err));
+
+    axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
+      chat_id: ADMIN_GROUP_ID,
+      message_id: messageId,
+      text: `${text}\n\n📋 Order: ${orderId}`,
+      parse_mode: 'HTML'
+    }).catch(err => console.error('Error:', err));
   }
 
   res.json({ ok: true });
