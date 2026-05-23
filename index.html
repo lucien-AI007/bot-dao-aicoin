@@ -142,7 +142,7 @@
     const MIN_WITHDRAW = 1;
     const AICOIN_TO_VND_RATE = 10000000;
     const MINING_PER_SECOND = 0.231;
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzaWKD_ouTdwIes_fnLnjrv9Z-tZwE289lni_oSRQbcjbLUel16RwcHG3orAZ5Qyvt5/exec";
+    const BACKEND_URL = "https://aicoin-bot.onrender.com/api";
 
     setInterval(() => {
         localStorage.setItem('lastExitTime', Date.now().toString());
@@ -166,7 +166,7 @@
             showMessage("⚠️ Không thể xác định User ID!");
             return;
         }
-        fetch(GAS_URL + "?action=getData&userId=" + userId)
+        fetch(BACKEND_URL + "/getData?userId=" + userId)
             .then(r => r.json())
             .then(data => {
                 aicoin = parseFloat(data.aicoin) || 0;
@@ -201,10 +201,10 @@
     function saveDataToServer() {
         let userId = getTelegramUserId();
         if (!userId) return;
-        fetch(GAS_URL, {
+        fetch(BACKEND_URL + "/saveData", {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: "saveData",
                 userId: userId,
                 aicoin: aicoin,
                 vnd: vnd,
@@ -375,7 +375,7 @@
         let statusText = document.getElementById('statusText');
 
         currentWithdrawCheckInterval = setInterval(() => {
-            fetch(GAS_URL + "?action=checkWithdrawStatus&userId=" + userId)
+            fetch(BACKEND_URL + "/checkWithdrawStatus?userId=" + userId)
                 .then(r => r.json())
                 .then(data => {
                     if (data.status === "approved") {
@@ -484,10 +484,10 @@
     }
 
     function saveWithdrawRequest(userId, orderId, messageId, status, bankName, accNum, accName, amount, fee, receivedAmount) {
-        fetch(GAS_URL, {
+        fetch(BACKEND_URL + "/saveWithdraw", {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: "saveWithdraw",
                 userId: userId,
                 orderId: orderId,
                 messageId: messageId,
