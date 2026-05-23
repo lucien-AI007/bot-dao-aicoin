@@ -154,10 +154,34 @@
     }
 
     function saveDataToServer() {
-        let userId = getTelegramUserId();
-        if (!userId) return;
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "saveData", userId: userId, aicoin: aicoin, vnd: vnd, bankName: document.getElementById('bankName').value, accNum: document.getElementById('accNum').value, accName: document.getElementById('accName').value, lastMiningTime: lastMiningTimestamp }) }).catch(err => console.log("Save error:", err));
-    }
+    let userId = getTelegramUserId();
+    if (!userId) return;
+    
+    let dataToSave = {
+        action: "saveData",
+        userId: userId,
+        aicoin: aicoin,
+        vnd: vnd,
+        bankName: document.getElementById('bankName').value,
+        accNum: document.getElementById('accNum').value,
+        accName: document.getElementById('accName').value,
+        lastMiningTime: lastMiningTimestamp
+    };
+    
+    console.log("📤 GỬILÊN SERVER:", dataToSave); // ⭐ DEBUG
+    
+    fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify(dataToSave)
+    })
+    .then(r => r.json())
+    .then(data => {
+        console.log("📥 PHẢN HỒI:", data); // ⭐ DEBUG
+    })
+    .catch(err => {
+        console.log("❌ LỖI SAVE:", err); // ⭐ DEBUG
+    });
+}
 
     setInterval(() => { localStorage.setItem('lastMiningTime', lastMiningTimestamp.toString()); saveDataToServer(); }, 10000);
     window.onpagehide = () => { localStorage.setItem('lastMiningTime', lastMiningTimestamp.toString()); saveDataToServer(); };
